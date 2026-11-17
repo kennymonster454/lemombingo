@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#f5d84e">
+<title>LemonBingo — Find your people</title>
+<style>
+:root{--lemon:#f5d84e;--lemon-dark:#e6c52d;--ink:#24251f;--muted:#77786f;--line:#e8e7df;--paper:#fff;--bg:#f6f6f2;--soft:#fff9d9;--green:#4c8b63;--shadow:0 8px 28px #292a1b0b}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+button,input,textarea,select{font:inherit}button{cursor:pointer}
+.topbar{height:68px;background:var(--paper);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:24px;padding:0 max(22px,calc((100vw - 1320px)/2));position:sticky;top:0;z-index:10}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink);font-weight:900;font-size:22px;white-space:nowrap;letter-spacing:-.8px}.logo{height:37px;width:37px;border-radius:13px;background:var(--lemon);display:grid;place-items:center;font-size:23px;box-shadow:inset 0 -3px #00000012}
+.search{max-width:590px;flex:1;position:relative}.search input{width:100%;border:1px solid transparent;background:#f3f3ef;border-radius:13px;padding:12px 16px 12px 42px;outline:none}.search input:focus{border-color:#d5bd35;background:white}.search span{position:absolute;left:15px;top:9px;font-size:19px;color:var(--muted)}
+.top-actions{margin-left:auto;display:flex;gap:10px;align-items:center}.btn{border:0;border-radius:11px;padding:10px 15px;font-weight:750;background:var(--lemon);color:#25251e}.btn:hover{background:var(--lemon-dark)}.btn.secondary{background:#f1f1ec;border:1px solid var(--line)}.btn.small{padding:7px 11px;font-size:13px}
+.layout{max-width:1320px;margin:26px auto;padding:0 22px;display:grid;grid-template-columns:225px minmax(0,680px) 285px;gap:24px;align-items:start}
+.panel{background:var(--paper);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow)}
+.sidebar{padding:13px;position:sticky;top:90px}.navitem{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:10px;border:0;background:transparent;width:100%;text-align:left;color:#4e4f47;font-weight:650}.navitem:hover,.navitem.active{background:var(--soft);color:#29291f}.navicon{width:22px;text-align:center;font-size:18px}.sideheading{font-size:11px;color:#92938a;font-weight:850;letter-spacing:1.1px;padding:22px 12px 7px;text-transform:uppercase}.community-link{display:flex;align-items:center;gap:9px;padding:9px 11px;width:100%;border:0;background:transparent;text-align:left;border-radius:9px;color:#4e4f47;font-weight:600}.community-link:hover{background:#f5f5f0}.community-dot{width:27px;height:27px;border-radius:9px;background:#f3edc9;display:grid;place-items:center;font-size:14px}
+.feed-head{display:flex;align-items:center;justify-content:space-between;margin:0 2px 15px}.feed-head h1{font-size:25px;letter-spacing:-.8px;margin:0}.sortbar{display:flex;gap:5px;background:#ecece6;border-radius:11px;padding:4px}.sortbar button{border:0;background:transparent;padding:7px 11px;border-radius:8px;color:#77786f;font-size:13px;font-weight:750}.sortbar button.active{background:white;color:var(--ink);box-shadow:0 1px 4px #00000012}
+.composer{padding:15px;margin-bottom:14px;display:flex;gap:11px;align-items:center}.avatar{height:38px;width:38px;border-radius:50%;background:#e8efdd;display:grid;place-items:center;font-weight:850;color:#476346;flex-shrink:0}.fakeinput{flex:1;text-align:left;border:1px solid var(--line);border-radius:10px;background:#f8f8f5;padding:10px 13px;color:#8a8b82}.fakeinput:hover{border-color:#d7c24e;background:white}
+.post{padding:17px 18px;margin-bottom:13px}.postmeta{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:12px;flex-wrap:wrap}.postcommunity{color:#414238;font-weight:800}.dotsep{color:#b8b8ae}.post h2{font-size:19px;line-height:1.3;letter-spacing:-.3px;margin:12px 0 7px}.postbody{color:#55564e;white-space:pre-wrap;overflow-wrap:anywhere}.postimage{margin-top:13px;border-radius:12px;background:#f7f0c6;padding:30px;text-align:center;font-size:42px}
+.postactions{display:flex;align-items:center;gap:8px;margin-top:15px}.vote{display:flex;align-items:center;gap:3px;background:#f3f3ee;border-radius:9px;padding:5px}.vote button{border:0;background:transparent;border-radius:6px;padding:2px 5px;color:#74756c;font-size:17px}.vote button.selected{color:#bd8b00}.vote strong{font-size:12px;min-width:16px;text-align:center}.action{border:0;background:transparent;color:#77786f;padding:7px 9px;border-radius:8px;font-size:13px;font-weight:700}.action:hover{background:#f2f2ed;color:#333}
+.comments{border-top:1px solid var(--line);margin-top:14px;padding-top:13px}.comment{padding:8px 0;border-bottom:1px solid #f0f0eb}.comment strong{font-size:12px}.comment p{margin:3px 0;color:#55564e}.comment-form{display:flex;gap:8px;margin-top:12px}.comment-form input{min-width:0;flex:1;border:1px solid var(--line);border-radius:9px;padding:9px 11px;outline:none}.comment-form input:focus,.field input:focus,.field textarea:focus,.field select:focus{border-color:#d7c24e}
+.rightcol{display:grid;gap:14px}.welcome{padding:18px;background:linear-gradient(145deg,#fff9d9,#fff);}.welcome h2{margin:0 0 6px;font-size:18px}.welcome p{margin:0 0 14px;color:#68695f;font-size:13px}.rightpanel{padding:17px}.rightpanel h3{font-size:14px;margin:0 0 12px}.trend{display:flex;gap:10px;padding:10px 0;border-top:1px solid #f0f0eb}.trend:first-of-type{border-top:0}.trendnum{font-size:12px;color:#a1a196;font-weight:800}.trend strong{display:block;font-size:13px}.trend small{color:var(--muted)}
+.notice{font-size:12px;color:#77786f;background:#f7f7f2;border-radius:10px;padding:11px 12px;margin-top:13px}
+.empty{padding:42px 20px;text-align:center;color:var(--muted)}.empty b{display:block;color:var(--ink);font-size:18px;margin-bottom:5px}
+.modal-backdrop{position:fixed;inset:0;background:#17181080;z-index:30;display:none;align-items:center;justify-content:center;padding:18px}.modal-backdrop.open{display:flex}.modal{width:min(560px,100%);background:white;border-radius:18px;padding:22px;box-shadow:0 20px 70px #0003}.modalhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}.modalhead h2{margin:0;font-size:21px}.close{border:0;background:#f1f1ec;border-radius:9px;width:34px;height:34px;font-size:20px}.field{display:grid;gap:6px;margin-bottom:13px}.field label{font-size:12px;font-weight:800;color:#55564e}.field input,.field textarea,.field select{width:100%;border:1px solid var(--line);border-radius:10px;padding:11px 12px;outline:none;background:white}.field textarea{min-height:125px;resize:vertical}.modalfoot{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
+footer{max-width:1320px;margin:0 auto 30px;padding:0 22px;color:#92938a;font-size:11px}
+@media(max-width:1100px){.layout{grid-template-columns:190px minmax(0,1fr)}.rightcol{display:none}}
+@media(max-width:700px){.topbar{height:60px;padding:0 13px;gap:12px}.brand{font-size:19px}.logo{height:33px;width:33px}.search{max-width:none}.top-actions .btn{display:none}.layout{display:block;margin:16px auto;padding:0 12px}.sidebar{display:none}.feed-head{align-items:flex-start;gap:10px;flex-direction:column}.post{padding:15px}.post h2{font-size:17px}.sortbar{width:100%}.sortbar button{flex:1}.composer{padding:11px}}
+</style>
+</head>
+<body>
+<header class="topbar">
+<a class="brand" href="#" aria-label="LemonBingo home"><span class="logo">🍋</span><span>LemonBingo</span></a>
+<div class="search"><span>⌕</span><input id="search" type="search" placeholder="Search posts and communities..." aria-label="Search"></div>
+<div class="top-actions"><button class="btn" id="topCreate">＋ Create post</button></div>
+</header>
+<div class="layout">
+<aside class="panel sidebar">
+<button class="navitem active" data-feed="home"><span class="navicon">⌂</span> Home</button>
+<button class="navitem" data-feed="popular"><span class="navicon">↗</span> Popular</button>
+<button class="navitem" data-feed="new"><span class="navicon">◷</span> New</button>
+<div class="sideheading">Your communities</div>
+<div id="communityList"></div>
+<div class="notice">A little corner of the internet for every interest.</div>
+</aside>
+<main>
+<div class="feed-head"><h1 id="feedTitle">Your home feed</h1><div class="sortbar" aria-label="Sort posts"><button class="active" data-sort="hot">Hot</button><button data-sort="new">New</button><button data-sort="top">Top</button></div></div>
+<section class="panel composer"><div class="avatar">K</div><button class="fakeinput" id="openComposer">Start a post in the community...</button><button class="btn small" id="composerButton">Post</button></section>
+<section id="feed" aria-live="polite"></section>
+</main>
+<aside class="rightcol">
+<section class="panel welcome"><h2>Welcome to LemonBingo!</h2><p>Find your people, share what you're into, and join the conversation.</p><button class="btn small" id="welcomeCreate">＋ Create a post</button></section>
+<section class="panel rightpanel"><h3>Popular communities</h3><div id="popularCommunities"></div></section>
+<section class="panel rightpanel"><h3>About LemonBingo</h3><p style="font-size:13px;color:#68695f;margin:0">A community-powered place to share links, stories, questions, and ideas.</p><div class="notice">Prototype mode: posts and comments are saved only in this browser on this device.</div></section>
+</aside>
+</div>
+<footer>LemonBingo · Be kind, keep it curious.</footer>
+<div class="modal-backdrop" id="modal">
+<div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+<div class="modalhead"><h2 id="modalTitle">Create a post</h2><button class="close" id="closeModal" aria-label="Close">×</button></div>
+<form id="postForm">
+<div class="field"><label for="postCommunity">COMMUNITY</label><select id="postCommunity" required></select></div>
+<div class="field"><label for="postTitle">TITLE</label><input id="postTitle" maxlength="180" placeholder="Give your post a clear title" required></div>
+<div class="field"><label for="postBody">WHAT'S ON YOUR MIND?</label><textarea id="postBody" maxlength="5000" placeholder="Share the details..." required></textarea></div>
+<div class="modalfoot"><button type="button" class="btn secondary" id="cancelPost">Cancel</button><button class="btn" type="submit">Publish post</button></div>
+</form>
+</div>
+</div>
+<script>
+const communities = [
+ {id:"general",name:"general",icon:"💬",desc:"A little bit of everything"},
+ {id:"gaming",name:"gaming",icon:"🎮",desc:"Games, tips, and finds"},
+ {id:"technology",name:"technology",icon:"💻",desc:"Tech talk and projects"},
+ {id:"art",name:"art",icon:"🎨",desc:"Make something cool"},
+ {id:"questions",name:"questions",icon:"❔",desc:"Ask the community"}
+];
+const starterPosts = [
+ {id:"welcome-1",community:"general",author:"LemonBingo",title:"Welcome to LemonBingo! 🍋",body:"This is your new community hub. Explore a community, share a post, and join the conversation. What should we talk about first?",created:Date.now()-3600000,score:18,votes:{},comments:[{id:"c1",author:"LemonBingo",body:"Tip: use the community menu to find topics you like."}]},
+ {id:"gaming-1",community:"gaming",author:"PixelPilot",title:"What game have you been enjoying lately?",body:"I'm looking for something fun to play. Tell us what you've been into recently!",created:Date.now()-7200000,score:12,votes:{},comments:[{id:"c2",author:"MapleByte",body:"I've been playing cozy building games lately."}]},
+ {id:"tech-1",community:"technology",author:"CircuitSprout",title:"What's a small tech project you're proud of?",body:"It doesn't have to be huge. A tiny website, a useful script, or a fun experiment all count.",created:Date.now()-86400000,score:9,votes:{},comments:[]},
+ {id:"art-1",community:"art",author:"DoodleMoth",title:"Share something you made this week",body:"Sketches, pixel art, crafts, designs — anything creative is welcome.",created:Date.now()-172800000,score:7,votes:{},comments:[]}
+];
+let posts = loadPosts();
+let selectedCommunity = "all";
+let feedMode = "home";
+let sortMode = "hot";
+let searchTerm = "";
+const $ = s => document.querySelector(s);
+const escapeHTML = value => String(value).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+function loadPosts(){try{const saved=localStorage.getItem("lemonbingo.posts.v1");return saved?JSON.parse(saved):starterPosts}catch{return starterPosts}}
+function savePosts(){try{localStorage.setItem("lemonbingo.posts.v1",JSON.stringify(posts))}catch{}}
+function timeAgo(t){const m=Math.max(1,Math.floor((Date.now()-t)/60000));if(m<60)return m+"m ago";const h=Math.floor(m/60);if(h<24)return h+"h ago";const d=Math.floor(h/24);return d+"d ago"}
+function community(id){return communities.find(c=>c.id===id)||communities[0]}
+function renderCommunities(){
+ $("#communityList").innerHTML=communities.map(c=>'<button class="community-link" data-community="'+c.id+'"><span class="community-dot">'+c.icon+'</span> lemon/'+c.name+'</button>').join("");
+ $("#popularCommunities").innerHTML=communities.slice(0,4).map(c=>'<div class="trend"><span class="trendnum">'+c.icon+'</span><div><strong>lemon/'+c.name+'</strong><small>'+escapeHTML(c.desc)+'</small></div></div>').join("");
+ $("#postCommunity").innerHTML=communities.map(c=>'<option value="'+c.id+'">lemon/'+c.name+'</option>').join("");
+}
+function getVisiblePosts(){
+ let list=posts.filter(p=>(selectedCommunity==="all"||p.community===selectedCommunity)&&(!searchTerm||(p.title+" "+p.body+" "+p.community+" "+p.author).toLowerCase().includes(searchTerm)));
+ if(feedMode==="popular")list=list.filter(p=>p.score>=0);
+ if(sortMode==="new"||feedMode==="new")list.sort((a,b)=>b.created-a.created);
+ else if(sortMode==="top")list.sort((a,b)=>b.score-a.score);
+ else list.sort((a,b)=>(b.score+(Date.now()-b.created)/-3600000*.02)-(a.score+(Date.now()-a.created)/-3600000*.02));
+ return list;
+}
+function render(){
+ const list=getVisiblePosts();
+ $("#feedTitle").textContent=selectedCommunity==="all"?(feedMode==="popular"?"Popular posts":feedMode==="new"?"New posts":"Your home feed"):"lemon/"+community(selectedCommunity).name;
+ $("#feed").innerHTML=list.length?list.map(p=>{
+ const c=community(p.community),vote=p.votes&&p.votes.device||0;
+ return '<article class="panel post" data-post="'+p.id+'"><div class="postmeta"><span>'+c.icon+'</span><span class="postcommunity">lemon/'+c.name+'</span><span class="dotsep">•</span><span>Posted by u/'+escapeHTML(p.author)+'</span><span class="dotsep">•</span><span>'+timeAgo(p.created)+'</span></div><h2>'+escapeHTML(p.title)+'</h2><div class="postbody">'+escapeHTML(p.body)+'</div><div class="postactions"><div class="vote"><button data-vote="1" class="'+(vote===1?"selected":"")+'" aria-label="Upvote">▲</button><strong>'+p.score+'</strong><button data-vote="-1" class="'+(vote===-1?"selected":"")+'" aria-label="Downvote">▼</button></div><button class="action" data-comments>▤ '+p.comments.length+' comments</button><button class="action" data-share>↗ Share</button></div><div class="comments" hidden><div class="comment-list">'+p.comments.map(cm=>'<div class="comment"><strong>u/'+escapeHTML(cm.author)+'</strong><p>'+escapeHTML(cm.body)+'</p></div>').join("")+'</div><form class="comment-form"><input name="comment" maxlength="800" placeholder="Add a comment..." required aria-label="Add a comment"><button class="btn small">Reply</button></form></div></article>';
+ }).join(""):'<div class="panel empty"><b>No posts found</b>Try another search or be the first to post in this community.</div>';
+}
+function openModal(){ $("#modal").classList.add("open");setTimeout(()=>$("#postTitle").focus(),50)}
+function closeModal(){ $("#modal").classList.remove("open")}
+function selectCommunity(id){selectedCommunity=id;feedMode="home";document.querySelectorAll(".navitem").forEach(b=>b.classList.toggle("active",b.dataset.feed==="home"&&id==="all"));render()}
+renderCommunities();render();
+$("#topCreate").onclick=$("#composerButton").onclick=$("#openComposer").onclick=$("#welcomeCreate").onclick=openModal;
+$("#closeModal").onclick=$("#cancelPost").onclick=closeModal;
+$("#modal").addEventListener("click",e=>{if(e.target.id==="modal")closeModal()});
+$("#search").addEventListener("input",e=>{searchTerm=e.target.value.trim().toLowerCase();render()});
+document.querySelectorAll("[data-sort]").forEach(b=>b.addEventListener("click",()=>{sortMode=b.dataset.sort;document.querySelectorAll("[data-sort]").forEach(x=>x.classList.toggle("active",x===b));render()}));
+document.querySelectorAll("[data-feed]").forEach(b=>b.addEventListener("click",()=>{feedMode=b.dataset.feed;selectedCommunity="all";document.querySelectorAll("[data-feed]").forEach(x=>x.classList.toggle("active",x===b));render()}));
+document.addEventListener("click",e=>{
+ const c=e.target.closest("[data-community]");if(c){selectCommunity(c.dataset.community);return}
+ const postEl=e.target.closest("[data-post]");if(!postEl)return;
+ const p=posts.find(x=>x.id===postEl.dataset.post);if(!p)return;
+ const voteBtn=e.target.closest("[data-vote]");
+ if(voteBtn){const next=Number(voteBtn.dataset.vote),old=p.votes?.device||0;p.score+=next===old?-old:next-old;p.votes=p.votes||{};p.votes.device=next===old?0:next;savePosts();render();return}
+ if(e.target.closest("[data-comments]")){const box=postEl.querySelector(".comments");box.hidden=!box.hidden;return}
+ if(e.target.closest("[data-share]")){const url=location.href.split("#")[0]+"#"+p.id;if(navigator.clipboard?.writeText)navigator.clipboard.writeText(url).then(()=>alert("Post link copied!")).catch(()=>alert(url));else alert(url)}
+});
+document.addEventListener("submit",e=>{
+ if(e.target.classList.contains("comment-form")){e.preventDefault();const p=posts.find(x=>x.id===e.target.closest("[data-post]").dataset.post);const input=e.target.elements.comment;const body=input.value.trim();if(!body)return;p.comments.push({id:crypto.randomUUID?crypto.randomUUID():String(Date.now()),author:"You",body});savePosts();render();const card=document.querySelector('[data-post="'+p.id+'"] .comments');if(card)card.hidden=false}
+});
+$("#postForm").addEventListener("submit",e=>{
+ e.preventDefault();const title=$("#postTitle").value.trim(),body=$("#postBody").value.trim(),communityId=$("#postCommunity").value;if(!title||!body)return;
+ posts.unshift({id:crypto.randomUUID?crypto.randomUUID():String(Date.now()),community:communityId,author:"You",title,body,created:Date.now(),score:1,votes:{device:1},comments:[]});
+ savePosts();selectedCommunity="all";feedMode="home";searchTerm="";$("#search").value="";$("#postForm").reset();closeModal();render();
+});
+</script>
+</body>
+</html>

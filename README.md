@@ -56,3 +56,14 @@ LemonBingo includes public community feeds, text/video/Shorts posts, image and v
 The current app uses the public Supabase project configured in `index.html`. The schema includes tables for `saved_posts`, `follows`, `notifications`, `user_blocks`, `direct_messages`, `community_members`, `reports`, `polls`, `poll_options`, and `poll_votes`. Media is stored in the public `lemon-media` bucket with authenticated uploads restricted to each user's own folder.
 
 The app is open source. Contributions and forks are welcome; review database policies before deploying schema changes to another Supabase project.
+
+
+## Android APK
+
+The Android app is built from the same website using Capacitor. GitHub Actions automatically builds a debug APK when the web app or Android configuration changes on `main`, and when manually started from the Actions tab.
+
+- Open the repository's **Actions** tab and select **Build LemonBingo APK**.
+- Download **LemonBingo-Android-APK** from the completed workflow run's Artifacts section.
+- To publish an APK on the repository's Releases page, push a version tag such as `v1.0.0`; the workflow attaches the APK to that GitHub Release.
+
+The APK uses the existing LemonBingo website and Supabase backend. It is currently an unsigned debug build for testing, not a Play Store release build.

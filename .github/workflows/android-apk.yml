@@ -9,10 +9,9 @@ on:
       - "package-lock.json"
       - "capacitor.config.json"
       - ".github/workflows/android-apk.yml"
-  workflow_dispatch:
-  push:
     tags:
       - "v*"
+  workflow_dispatch:
 
 permissions:
   contents: write

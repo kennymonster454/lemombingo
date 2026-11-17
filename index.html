@@ -244,8 +244,14 @@ $("#authForm").addEventListener("submit",async e=>{
     if(!/^[a-z0-9_]{3,24}$/.test(username)){showMessage(message,"Username must be 3–24 characters: letters, numbers, underscores.",true);return}
     const {data,error}=await db.auth.signUp({email,password,options:{data:{username}}});
     if(error){showMessage(message,error.message,true);return}
-    if(data.session){currentUser=data.user;profile=await ensureProfile(currentUser);setAuthUI();closeAuth();await refreshAll()}
-    else { sessionStorage.setItem("lemonbingo_verify_email",email); location.href="verify.html?email="+encodeURIComponent(email); }
+    if(data.session){
+      await db.auth.signOut();
+      currentUser=null;profile=null;setAuthUI();
+      showMessage(message,"Signup verification is OFF in the Supabase project, so no email code was sent. Enable Auth → Sign In / Providers → Email → Confirm signups, then try again.",true);
+      return;
+    }
+    sessionStorage.setItem("lemonbingo_verify_email",email);
+    location.href="verify.html?email="+encodeURIComponent(email);
   }else{
     const {data,error}=await db.auth.signInWithPassword({email,password});
     if(error){showMessage(message,error.message,true);return}

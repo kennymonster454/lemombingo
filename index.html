@@ -23,7 +23,7 @@ button,input,textarea,select{font:inherit}button{cursor:pointer}
 .comments{border-top:1px solid var(--line);margin-top:14px;padding-top:13px}.comment{padding:8px 0;border-bottom:1px solid #f0f0eb}.comment strong{font-size:12px}.comment p{margin:3px 0;color:#55564e}.comment-heading{display:flex;align-items:center;gap:10px}.reply-toggle{border:0;background:transparent;color:#77786f;font-size:11px;cursor:pointer}.comment-children{margin:8px 0 0 12px;padding-left:12px;border-left:2px solid #eeeede}.reply-form{display:flex;gap:8px;margin:8px 0}.reply-form input{min-width:0;flex:1;border:1px solid var(--line);border-radius:9px;padding:8px 10px}.comment-form{display:flex;gap:8px;margin-top:12px}.comment-form input{min-width:0;flex:1;border:1px solid var(--line);border-radius:9px;padding:9px 11px;outline:none}.comment-form input:focus,.field input:focus,.field textarea:focus,.field select:focus{border-color:#d7c24e}
 .rightcol{display:grid;gap:14px}.welcome{padding:18px;background:linear-gradient(145deg,#fff9d9,#fff);}.welcome h2{margin:0 0 6px;font-size:18px}.welcome p{margin:0 0 14px;color:#68695f;font-size:13px}.rightpanel{padding:17px}.rightpanel h3{font-size:14px;margin:0 0 12px}.trend{display:flex;gap:10px;padding:10px 0;border-top:1px solid #f0f0eb}.trend:first-of-type{border-top:0}.trendnum{font-size:12px;color:#a1a196;font-weight:800}.trend strong{display:block;font-size:13px}.trend small{color:var(--muted)}
 .notice{font-size:12px;color:#77786f;background:#f7f7f2;border-radius:10px;padding:11px 12px;margin-top:13px}
-.media-player{display:block;width:100%;max-height:440px;aspect-ratio:16/9;object-fit:contain;background:#111;border-radius:13px;margin:13px 0}.media-image{display:block;max-width:100%;max-height:620px;object-fit:contain;border-radius:13px;margin:13px auto}
+.media-player{display:block;width:100%;max-height:440px;aspect-ratio:16/9;object-fit:contain;background:#111;border-radius:13px;margin:13px 0}.media-image{display:block;max-width:100%;max-height:620px;object-fit:contain;border-radius:13px;margin:13px auto}.poll-options{display:grid;gap:8px;margin:12px 0}.poll-option{display:flex;justify-content:space-between;gap:12px;padding:10px 12px;border:1px solid var(--line);background:#fffdf2;border-radius:9px;text-align:left}.poll-option span{color:var(--muted);font-size:12px}
 .short-player{width:min(100%,360px);max-height:640px;aspect-ratio:9/16;margin:14px auto}
 .media-note{font-size:12px;color:var(--muted);margin-top:-5px}
 .empty{padding:42px 20px;text-align:center;color:var(--muted)}.empty b{display:block;color:var(--ink);font-size:18px;margin-bottom:5px}
@@ -154,7 +154,9 @@ async function loadPosts(){
   const {data:raw,error}=await db.from("posts").select("id,community_id,user_id,title,body,post_type,media_url,created_at,profiles(username),communities(name)").order("created_at",{ascending:false}).limit(100);
   if(error)throw error;
   const ids=(raw||[]).map(p=>p.id);
-  let comments=[],votes=[];
+  let comments=[],votes=[],polls=[];
+  if(ids.length){const pr=await db.from("polls").select("id,post_id,allow_multiple,closes_at,poll_options(id,label,position),poll_votes(option_id,user_id)").in("post_id",ids);if(pr.error)throw pr.error;polls=pr.data||[];}
+
   if(ids.length){
     const [cr,vr]=await Promise.all([
       db.from("comments").select("id,post_id,user_id,parent_id,body,created_at,profiles(username)").in("post_id",ids).order("created_at"),
@@ -169,7 +171,8 @@ async function loadPosts(){
     return {...p,author:p.profiles?.username||"member",community:p.communities?.name||"general",
       score:pv.reduce((n,v)=>n+v.value,0),
       myVote:pv.find(v=>v.user_id===currentUser?.id)?.value||0,
-      comments:comments.filter(c=>c.post_id===p.id).map(c=>({id:c.id,parent_id:c.parent_id||null,author:c.profiles?.username||"member",body:c.body,created_at:c.created_at}))};
+      comments:comments.filter(c=>c.post_id===p.id).map(c=>({id:c.id,parent_id:c.parent_id||null,author:c.profiles?.username||"member",body:c.body,created_at:c.created_at})),
+      poll:polls.find(x=>x.post_id===p.id)||null};
   });
   render();
 }
@@ -255,7 +258,8 @@ function render(){
   $("#feed").innerHTML=list.length?list.map(p=>{
     const c=community(p.community_id),vote=p.myVote||0;
     const media=renderPostMedia(p);
-    return '<article class="panel post" data-post="'+p.id+'"><div class="postmeta"><span>'+c.icon+'</span><span class="postcommunity">lemon/'+escapeHTML(c.name)+'</span><span class="dotsep">•</span><span>Posted by u/'+escapeHTML(p.author)+'</span><span class="dotsep">•</span><span>'+timeAgo(p.created_at)+'</span></div><h2>'+escapeHTML(p.title)+'</h2>'+media+'<div class="postbody">'+escapeHTML(p.body||"")+'</div><div class="postactions"><div class="vote"><button data-vote="1" class="'+(vote===1?"selected":"")+'" aria-label="Upvote">▲</button><strong>'+p.score+'</strong><button data-vote="-1" class="'+(vote===-1?"selected":"")+'" aria-label="Downvote">▼</button></div><button class="action" data-comments>▤ '+p.comments.length+' comments</button><button class="action" data-save>▣ Save</button><button class="action" data-follow>♡ Follow</button><button class="action" data-report>⚑ Report</button><button class="action" data-edit>✎ Edit</button><button class="action" data-share>↗ Share</button></div><div class="comments" hidden><div class="comment-list">'+renderCommentTree(p.comments)+'</div><form class="comment-form"><input name="comment" maxlength="800" placeholder="'+(currentUser?"Add a comment...":"Sign in to comment")+'" required aria-label="Add a comment"><button class="btn small">Reply</button></form></div></article>';
+    const pollHtml=p.poll?'<div class="poll-options">'+(p.poll.poll_options||[]).sort((a,b)=>a.position-b.position).map(o=>{const count=(p.poll.poll_votes||[]).filter(v=>v.option_id===o.id).length;return '<button class="poll-option" data-poll-option="'+o.id+'">'+escapeHTML(o.label)+' <span>'+count+' votes</span></button>'}).join("")+'</div>':"";
+    return '<article class="panel post" data-post="'+p.id+'"><div class="postmeta"><span>'+c.icon+'</span><span class="postcommunity">lemon/'+escapeHTML(c.name)+'</span><span class="dotsep">•</span><span>Posted by u/'+escapeHTML(p.author)+'</span><span class="dotsep">•</span><span>'+timeAgo(p.created_at)+'</span></div><h2>'+escapeHTML(p.title)+'</h2>'+media+'<div class="postbody">'+escapeHTML(p.body||"")+'</div>'+pollHtml+'<div class="postactions"><div class="vote"><button data-vote="1" class="'+(vote===1?"selected":"")+'" aria-label="Upvote">▲</button><strong>'+p.score+'</strong><button data-vote="-1" class="'+(vote===-1?"selected":"")+'" aria-label="Downvote">▼</button></div><button class="action" data-comments>▤ '+p.comments.length+' comments</button><button class="action" data-save>▣ Save</button><button class="action" data-follow>♡ Follow</button><button class="action" data-report>⚑ Report</button><button class="action" data-edit>✎ Edit</button><button class="action" data-share>↗ Share</button></div><div class="comments" hidden><div class="comment-list">'+renderCommentTree(p.comments)+'</div><form class="comment-form"><input name="comment" maxlength="800" placeholder="'+(currentUser?"Add a comment...":"Sign in to comment")+'" required aria-label="Add a comment"><button class="btn small">Reply</button></form></div></article>';
   }).join(""):'<div class="panel empty"><b>No posts found</b>'+(feedMode==="videos"||feedMode==="shorts"?"Be the first to share one!":"Try another search or be the first to post in this community.")+'</div>';
 }
 function openModal(){if(!currentUser){openAuth("signin");return}$("#modal").classList.add("open");setTimeout(()=>$("#postTitle").focus(),50)}
@@ -282,10 +286,12 @@ $("#topCreate").onclick=$("#composerButton").onclick=$("#openComposer").onclick=
 $("#closeModal").onclick=$("#cancelPost").onclick=closeModal;
 $("#authButton").onclick=()=>openAuth("signin");
 $("#postType").addEventListener("change",()=>{
-  const mediaPost=$("#postType").value!=="text";
+  const type=$("#postType").value,mediaPost=type==="image"||type==="video"||type==="short";
   $("#mediaUrlField").hidden=!mediaPost;
-  $("#mediaUrl").required=mediaPost;
-  $("#postBody").required=!mediaPost;
+  $("#pollOptionsField").hidden=type!=="poll";
+  $("#mediaUrl").required=false;
+  $("#mediaFile").required=false;
+  $("#postBody").required=type==="text";
 });
 $("#closeAuth").onclick=closeAuth;
 $("#signOutButton").onclick=async()=>{const {error}=await db.auth.signOut();if(error)showError(error)};
@@ -295,7 +301,6 @@ document.querySelectorAll("[data-auth-mode]").forEach(b=>b.addEventListener("cli
 $("#search").addEventListener("input",e=>{searchTerm=e.target.value.trim().toLowerCase();render()});
 document.querySelectorAll("[data-sort]").forEach(b=>b.addEventListener("click",()=>{sortMode=b.dataset.sort;document.querySelectorAll("[data-sort]").forEach(x=>x.classList.toggle("active",x===b));render()}));
 document.querySelectorAll("[data-feed]").forEach(b=>b.addEventListener("click",()=>{activeFeature="";specialPostIds=null;feedMode=b.dataset.feed;selectedCommunity="all";document.querySelectorAll("[data-feed]").forEach(x=>x.classList.toggle("active",x===b));document.querySelectorAll("[data-feature]").forEach(x=>x.classList.remove("active"));render()}));
-document.querySelectorAll("[data-feature]").forEach(b=>b.addEventListener("click",()=>openFeature(b.dataset.feature)));
 featureCss();
 document.addEventListener("click",async e=>{
   const feature=e.target.closest("[data-feature]");if(feature){openFeature(feature.dataset.feature);return}
@@ -312,6 +317,7 @@ document.addEventListener("click",async e=>{
     if(result.error){showError(result.error);return}
     await loadPosts();return;
   }
+  const pollOption=e.target.closest("[data-poll-option]");if(pollOption){if(!currentUser){openAuth("signin");return}if(!p.poll)return;const optionId=pollOption.dataset.pollOption;let q=db.from("poll_votes").delete().eq("poll_id",p.poll.id).eq("user_id",currentUser.id);const del=await q;if(del.error){showError(del.error);return}const ins=await db.from("poll_votes").insert({poll_id:p.poll.id,option_id:optionId,user_id:currentUser.id});if(ins.error)showError(ins.error);else await loadPosts();return}
   if(e.target.closest("[data-comments]")){const box=postEl.querySelector(".comments");box.hidden=!box.hidden;return}
   if(e.target.closest("[data-save]")){if(!currentUser){openAuth("signin");return}const exists=await db.from("saved_posts").select("post_id").eq("user_id",currentUser.id).eq("post_id",p.id).maybeSingle();if(exists.error){showError(exists.error);return}const result=exists.data?await db.from("saved_posts").delete().eq("user_id",currentUser.id).eq("post_id",p.id):await db.from("saved_posts").insert({user_id:currentUser.id,post_id:p.id});if(result.error)showError(result.error);else alert(exists.data?"Removed from saved posts.":"Post saved.");return}
   if(e.target.closest("[data-follow]")){if(!currentUser){openAuth("signin");return}if(p.user_id===currentUser.id)return;const r=await db.from("follows").upsert({follower_id:currentUser.id,following_id:p.user_id},{onConflict:"follower_id,following_id"});if(r.error)showError(r.error);else alert("Following u/"+p.author);return}
@@ -337,12 +343,38 @@ document.addEventListener("submit",async e=>{
 });
 $("#postForm").addEventListener("submit",async e=>{
   e.preventDefault();if(!currentUser){openAuth("signin");return}
-  const title=$("#postTitle").value.trim(),body=$("#postBody").value.trim(),communityId=$("#postCommunity").value,postType=$("#postType").value,mediaUrl=$("#mediaUrl").value.trim();
-  if(!title||(postType==="text"&&!body)||(postType!=="text"&&!mediaUrl))return;
-  if(postType!=="text"){try{const u=new URL(mediaUrl);if(u.protocol!=="https:")throw new Error("Use an HTTPS video link.");}catch(err){showError(err);return}}
-  const {error}=await db.from("posts").insert({community_id:communityId,user_id:currentUser.id,title,body,post_type:postType,media_url:postType==="text"?null:mediaUrl});
-  if(error){showError(error);return}
-  $("#postForm").reset();$("#mediaUrlField").hidden=true;$("#mediaUrl").required=false;$("#postBody").required=true;closeModal();selectedCommunity="all";feedMode="home";searchTerm="";$("#search").value="";await loadPosts();
+  const title=$("#postTitle").value.trim(),body=$("#postBody").value.trim(),communityId=$("#postCommunity").value,postType=$("#postType").value;
+  const mediaUrl=$("#mediaUrl").value.trim(),file=$("#mediaFile").files[0];
+  let finalMediaUrl=mediaUrl;
+  if(!title){alert("Add a title.");return}
+  if(postType==="text"&&!body){alert("Add some text.");return}
+  if(postType==="poll"){
+    const options=$("#pollOptions").value.split("\n").map(x=>x.trim()).filter(Boolean);
+    if(options.length<2||options.length>6){alert("A poll needs 2–6 options.");return}
+    const {data:post,error}=await db.from("posts").insert({community_id:communityId,user_id:currentUser.id,title,body,post_type:"poll"}).select("id").single();
+    if(error){showError(error);return}
+    const {data:poll,error:pollError}=await db.from("polls").insert({post_id:post.id}).select("id").single();
+    if(pollError){showError(pollError);return}
+    const {error:optionsError}=await db.from("poll_options").insert(options.map((label,position)=>({poll_id:poll.id,label,position})));
+    if(optionsError){showError(optionsError);return}
+  }else{
+    if(file){
+      if(file.size>52428800){alert("Files must be 50 MB or smaller.");return}
+      const allowed=["image/jpeg","image/png","image/webp","image/gif","video/mp4","video/webm"];
+      if(!allowed.includes(file.type)){alert("That file type is not supported.");return}
+      if(postType==="image"&&!file.type.startsWith("image/")){alert("Choose an image file.");return}
+      if((postType==="video"||postType==="short")&&!file.type.startsWith("video/")){alert("Choose a video file.");return}
+      const path=currentUser.id+"/"+crypto.randomUUID()+"-"+file.name.replace(/[^a-zA-Z0-9._-]/g,"_");
+      const upload=await db.storage.from("lemon-media").upload(path,file,{upsert:false,contentType:file.type});
+      if(upload.error){showError(upload.error);return}
+      finalMediaUrl=db.storage.from("lemon-media").getPublicUrl(path).data.publicUrl;
+    }
+    if((postType==="image"||postType==="video"||postType==="short")&&!finalMediaUrl){alert("Add a media URL or upload a file.");return}
+    if(finalMediaUrl){try{const u=new URL(finalMediaUrl);if(u.protocol!=="https:")throw new Error("Use an HTTPS media link.");}catch(err){showError(err);return}}
+    const {error}=await db.from("posts").insert({community_id:communityId,user_id:currentUser.id,title,body,post_type:postType,media_url:finalMediaUrl||null});
+    if(error){showError(error);return}
+  }
+  $("#postForm").reset();$("#mediaUrlField").hidden=true;$("#pollOptionsField").hidden=true;$("#mediaUrl").required=false;$("#postBody").required=true;closeModal();activeFeature="";specialPostIds=null;selectedCommunity="all";feedMode="home";searchTerm="";$("#search").value="";await loadPosts();
 });
 function authEmailForUsername(username){return username.toLowerCase()+"@users.lemonbingo.invalid"}
 $("#authForm").addEventListener("submit",async e=>{

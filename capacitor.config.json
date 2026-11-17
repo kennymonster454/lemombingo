@@ -1,0 +1,6 @@
+{
+  "appId": "com.lemonbingo.app",
+  "appName": "LemonBingo",
+  "webDir": "www",
+  "bundledWebRuntime": false
+}

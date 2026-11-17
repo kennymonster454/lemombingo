@@ -155,7 +155,7 @@ async function loadPosts(){
   if(error)throw error;
   const ids=(raw||[]).map(p=>p.id);
   let comments=[],votes=[],polls=[];
-  if(ids.length){const pr=await db.from("polls").select("id,post_id,allow_multiple,closes_at,poll_options(id,label,position),poll_votes(option_id,user_id)").in("post_id",ids);if(pr.error)throw pr.error;polls=pr.data||[];}
+  if(ids.length){const pr=await db.from("polls").select("id,post_id,allow_multiple,closes_at,poll_options!poll_options_poll_id_fkey(id,label,position),poll_votes(option_id,user_id)").in("post_id",ids);if(pr.error)throw pr.error;polls=pr.data||[];}
 
   if(ids.length){
     const [cr,vr]=await Promise.all([

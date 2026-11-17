@@ -155,7 +155,24 @@ async function loadPosts(){
   if(error)throw error;
   const ids=(raw||[]).map(p=>p.id);
   let comments=[],votes=[],polls=[];
-  if(ids.length){const pr=await db.from("polls").select("id,post_id,allow_multiple,closes_at,poll_options!poll_options_poll_id_fkey(id,label,position),poll_votes(option_id,user_id)").in("post_id",ids);if(pr.error)throw pr.error;polls=pr.data||[];}
+  if(ids.length){
+    const pr=await db.from("polls").select("id,post_id,allow_multiple,closes_at").in("post_id",ids);
+    if(pr.error)throw pr.error;
+    const pollIds=(pr.data||[]).map(p=>p.id);
+    if(pollIds.length){
+      const [optionsResult,votesResult]=await Promise.all([
+        db.from("poll_options").select("id,poll_id,label,position").in("poll_id",pollIds).order("position"),
+        db.from("poll_votes").select("poll_id,option_id,user_id").in("poll_id",pollIds)
+      ]);
+      if(optionsResult.error)throw optionsResult.error;
+      if(votesResult.error)throw votesResult.error;
+      polls=(pr.data||[]).map(p=>({
+        ...p,
+        poll_options:(optionsResult.data||[]).filter(o=>o.poll_id===p.id),
+        poll_votes:(votesResult.data||[]).filter(v=>v.poll_id===p.id)
+      }));
+    }
+  }
 
   if(ids.length){
     const [cr,vr]=await Promise.all([

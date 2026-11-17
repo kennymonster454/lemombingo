@@ -23,7 +23,7 @@ button,input,textarea,select{font:inherit}button{cursor:pointer}
 .comments{border-top:1px solid var(--line);margin-top:14px;padding-top:13px}.comment{padding:8px 0;border-bottom:1px solid #f0f0eb}.comment strong{font-size:12px}.comment p{margin:3px 0;color:#55564e}.comment-heading{display:flex;align-items:center;gap:10px}.reply-toggle{border:0;background:transparent;color:#77786f;font-size:11px;cursor:pointer}.comment-children{margin:8px 0 0 12px;padding-left:12px;border-left:2px solid #eeeede}.reply-form{display:flex;gap:8px;margin:8px 0}.reply-form input{min-width:0;flex:1;border:1px solid var(--line);border-radius:9px;padding:8px 10px}.comment-form{display:flex;gap:8px;margin-top:12px}.comment-form input{min-width:0;flex:1;border:1px solid var(--line);border-radius:9px;padding:9px 11px;outline:none}.comment-form input:focus,.field input:focus,.field textarea:focus,.field select:focus{border-color:#d7c24e}
 .rightcol{display:grid;gap:14px}.welcome{padding:18px;background:linear-gradient(145deg,#fff9d9,#fff);}.welcome h2{margin:0 0 6px;font-size:18px}.welcome p{margin:0 0 14px;color:#68695f;font-size:13px}.rightpanel{padding:17px}.rightpanel h3{font-size:14px;margin:0 0 12px}.trend{display:flex;gap:10px;padding:10px 0;border-top:1px solid #f0f0eb}.trend:first-of-type{border-top:0}.trendnum{font-size:12px;color:#a1a196;font-weight:800}.trend strong{display:block;font-size:13px}.trend small{color:var(--muted)}
 .notice{font-size:12px;color:#77786f;background:#f7f7f2;border-radius:10px;padding:11px 12px;margin-top:13px}
-.media-player{display:block;width:100%;max-height:440px;aspect-ratio:16/9;object-fit:contain;background:#111;border-radius:13px;margin:13px 0}
+.media-player{display:block;width:100%;max-height:440px;aspect-ratio:16/9;object-fit:contain;background:#111;border-radius:13px;margin:13px 0}.media-image{display:block;max-width:100%;max-height:620px;object-fit:contain;border-radius:13px;margin:13px auto}
 .short-player{width:min(100%,360px);max-height:640px;aspect-ratio:9/16;margin:14px auto}
 .media-note{font-size:12px;color:var(--muted);margin-top:-5px}
 .empty{padding:42px 20px;text-align:center;color:var(--muted)}.empty b{display:block;color:var(--ink);font-size:18px;margin-bottom:5px}
@@ -46,6 +46,14 @@ footer{max-width:1320px;margin:0 auto 30px;padding:0 22px;color:#92938a;font-siz
 <button class="navitem" data-feed="new"><span class="navicon">◷</span> New</button>
 <button class="navitem" data-feed="videos"><span class="navicon">▶</span> Videos</button>
 <button class="navitem" data-feed="shorts"><span class="navicon">▣</span> Shorts</button>
+<div class="sideheading">Your LemonBingo</div>
+<button class="navitem" data-feature="saved">▣ Saved posts</button>
+<button class="navitem" data-feature="following">♡ Following</button>
+<button class="navitem" data-feature="notifications">♢ Notifications</button>
+<button class="navitem" data-feature="messages">✉ Messages</button>
+<button class="navitem" data-feature="profile">● My profile</button>
+<button class="navitem" data-feature="moderation">⚑ Moderation</button>
+<button class="navitem" data-feature="create-community">＋ Create community</button>
 <div class="sideheading">Your communities</div>
 <div id="communityList"></div>
 <div class="notice">A little corner of the internet for every interest.</div>
@@ -79,9 +87,10 @@ footer{max-width:1320px;margin:0 auto 30px;padding:0 22px;color:#92938a;font-siz
 <div class="modalhead"><h2 id="modalTitle">Create a post</h2><button class="close" id="closeModal" aria-label="Close">×</button></div>
 <form id="postForm">
 <div class="field"><label for="postCommunity">COMMUNITY</label><select id="postCommunity" required></select></div>
-<div class="field"><label for="postType">POST TYPE</label><select id="postType"><option value="text">Text post</option><option value="video">Video</option><option value="short">Short</option></select></div>
+<div class="field"><label for="postType">POST TYPE</label><select id="postType"><option value="text">Text post</option><option value="image">Image</option><option value="video">Video</option><option value="short">Short</option><option value="poll">Poll</option></select></div>
 <div class="field"><label for="postTitle">TITLE</label><input id="postTitle" maxlength="180" placeholder="Give your post a clear title" required></div>
-<div class="field" id="mediaUrlField" hidden><label for="mediaUrl">VIDEO URL</label><input id="mediaUrl" type="url" inputmode="url" placeholder="https://example.com/video.mp4"><span class="media-note">Use a direct HTTPS link to an MP4, WebM, or OGG video. Video uploads are not enabled yet.</span></div>
+<div class="field" id="mediaUrlField" hidden><label for="mediaUrl">MEDIA URL (OPTIONAL)</label><input id="mediaUrl" type="url" inputmode="url" placeholder="https://..."><label for="mediaFile">OR UPLOAD A FILE</label><input id="mediaFile" type="file" accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm"><span class="media-note">Images and videos up to 50 MB.</span></div>
+<div class="field" id="pollOptionsField" hidden><label for="pollOptions">POLL OPTIONS</label><textarea id="pollOptions" maxlength="1200" placeholder="One option per line"></textarea><span class="media-note">Add 2–6 choices, one per line.</span></div>
 <div class="field"><label for="postBody">CAPTION / DESCRIPTION</label><textarea id="postBody" maxlength="5000" placeholder="Add a caption..."></textarea></div>
 <div class="modalfoot"><button type="button" class="btn secondary" id="cancelPost">Cancel</button><button class="btn" type="submit">Publish post</button></div>
 </form>
@@ -103,6 +112,8 @@ let sortMode = "hot";
 let searchTerm = "";
 let authMode = "signin";
 let liveChannel = null;
+let specialPostIds = null;
+let activeFeature = "";
 
 const $ = s => document.querySelector(s);
 const escapeHTML = value => String(value ?? "").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -163,7 +174,7 @@ async function loadPosts(){
   render();
 }
 function getVisiblePosts(){
-  let list=posts.filter(p=>(selectedCommunity==="all"||p.community_id===selectedCommunity)&&(feedMode!=="videos"||p.post_type==="video")&&(feedMode!=="shorts"||p.post_type==="short")&&(!searchTerm||(p.title+" "+p.body+" "+p.community+" "+p.author).toLowerCase().includes(searchTerm)));
+  let list=posts.filter(p=>(specialPostIds===null||specialPostIds.includes(p.id))&&(selectedCommunity==="all"||p.community_id===selectedCommunity)&&(feedMode!=="videos"||p.post_type==="video")&&(feedMode!=="shorts"||p.post_type==="short")&&(!searchTerm||(p.title+" "+p.body+" "+p.community+" "+p.author).toLowerCase().includes(searchTerm)));
   if(feedMode==="popular")list=list.filter(p=>p.score>=0);
   if(sortMode==="new"||feedMode==="new")list.sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
   else if(sortMode==="top")list.sort((a,b)=>b.score-a.score);
@@ -173,6 +184,7 @@ function getVisiblePosts(){
 function renderPostMedia(p){
   if(!p.media_url)return "";
   let url;try{url=new URL(p.media_url);if(url.protocol!=="https:")return "";}catch{return ""}
+  if(p.post_type==="image")return '<img class="media-image" src="'+escapeHTML(url.href)+'" alt="'+escapeHTML(p.title)+'" loading="lazy">';
   let host=url.hostname.toLowerCase();if(host.startsWith("www."))host=host.slice(4);
   let videoId="";
   if(host==="youtu.be")videoId=url.pathname.split("/").filter(Boolean)[0]||"";
@@ -199,6 +211,43 @@ function renderCommentTree(comments){
   };
   return render();
 }
+async function openFeature(name){
+  if(name==="create-community"){if(!currentUser){openAuth("signin");return}const communityName=(prompt("Community name (letters, numbers, underscores):")||"").trim().toLowerCase();if(!/^[a-z0-9_]{3,24}$/.test(communityName)){alert("Use 3–24 letters, numbers, or underscores.");return}const description=(prompt("Community description:")||"").trim();const {data,error}=await db.from("communities").insert({name:communityName,description,created_by:currentUser.id}).select("id").single();if(error){showError(error);return}await db.from("community_members").upsert({community_id:data.id,user_id:currentUser.id,role:"owner"},{onConflict:"community_id,user_id"});await loadCommunities();alert("Community created.");return}
+  if(!currentUser){openAuth("signin");return}
+  activeFeature=name;specialPostIds=null;selectedCommunity="all";feedMode="home";
+  $("#feedTitle").textContent=({saved:"Saved posts",following:"Following",notifications:"Notifications",messages:"Messages",profile:"My profile",moderation:"Community moderation"})[name]||name;
+  document.querySelectorAll("[data-feature]").forEach(b=>b.classList.toggle("active",b.dataset.feature===name));
+  try{
+    if(name==="saved"||name==="following"){
+      let ids=[];
+      if(name==="saved"){const {data,error}=await db.from("saved_posts").select("post_id").eq("user_id",currentUser.id);if(error)throw error;ids=(data||[]).map(x=>x.post_id)}
+      else{const {data,error}=await db.from("follows").select("following_id").eq("follower_id",currentUser.id);if(error)throw error;const followed=(data||[]).map(x=>x.following_id);ids=posts.filter(p=>followed.includes(p.user_id)).map(p=>p.id)}
+      specialPostIds=ids;render();return;
+    }
+    if(name==="notifications"){
+      const {data,error}=await db.from("notifications").select("id,kind,body,post_id,is_read,created_at").eq("user_id",currentUser.id).order("created_at",{ascending:false}).limit(60);if(error)throw error;
+      $("#feed").innerHTML='<section class="panel feature-card"><button class="btn small" id="markNotifications">Mark all read</button><div>'+(data||[]).map(n=>'<div class="feature-row '+(n.is_read?"":"unread")+'"><b>'+escapeHTML(n.kind)+'</b> '+escapeHTML(n.body)+' <small>'+timeAgo(n.created_at)+'</small></div>').join("")+'</div></section>';
+      $("#markNotifications").onclick=async()=>{const {error}=await db.from("notifications").update({is_read:true}).eq("user_id",currentUser.id);if(error)showError(error);else openFeature("notifications")};return;
+    }
+    if(name==="profile"){
+      const {data,error}=await db.from("profiles").select("username,display_name,bio,website").eq("id",currentUser.id).single();if(error)throw error;
+      $("#feed").innerHTML='<section class="panel feature-card"><h2>My profile · u/'+escapeHTML(data.username)+'</h2><form id="profileEdit"><label>Display name<input name="display_name" maxlength="50" value="'+escapeHTML(data.display_name||"")+'"></label><label>Bio<textarea name="bio" maxlength="500">'+escapeHTML(data.bio||"")+'</textarea></label><label>Website<input name="website" type="url" value="'+escapeHTML(data.website||"")+'" placeholder="https://..."></label><button class="btn">Save profile</button></form></section>';
+      $("#profileEdit").onsubmit=async e=>{e.preventDefault();const fd=new FormData(e.target);const {error}=await db.from("profiles").update({display_name:fd.get("display_name"),bio:fd.get("bio"),website:fd.get("website")}).eq("id",currentUser.id);if(error)showError(error);else alert("Profile updated.")};return;
+    }
+    if(name==="messages"){
+      const {data,error}=await db.from("direct_messages").select("id,sender_id,recipient_id,body,created_at").or("sender_id.eq."+currentUser.id+",recipient_id.eq."+currentUser.id).order("created_at",{ascending:false}).limit(80);if(error)throw error;
+      const others=[...new Set((data||[]).map(m=>m.sender_id===currentUser.id?m.recipient_id:m.sender_id))];let people={};
+      if(others.length){const pr=await db.from("profiles").select("id,username").in("id",others);if(pr.error)throw pr.error;for(const p of pr.data||[])people[p.id]=p.username}
+      $("#feed").innerHTML='<section class="panel feature-card"><h2>Messages</h2><p class="media-note">Only mutual followers can message each other. Blocking prevents messaging in either direction.</p><form id="sendMessageForm"><label>Username<input name="username" required></label><label>Message<textarea name="body" maxlength="4000" required></textarea></label><button class="btn">Send</button></form><h3>Recent messages</h3>'+((data||[]).map(m=>'<div class="feature-row"><b>u/'+escapeHTML(people[m.sender_id===currentUser.id?m.recipient_id:m.sender_id]||"member")+'</b> '+escapeHTML(m.body)+' <small>'+timeAgo(m.created_at)+'</small></div>').join("")||"No messages yet.")+'</section>';
+      $("#sendMessageForm").onsubmit=async e=>{e.preventDefault();const fd=new FormData(e.target),username=String(fd.get("username")).trim().toLowerCase(),body=String(fd.get("body")).trim();const p=await db.from("profiles").select("id").eq("username",username).maybeSingle();if(p.error||!p.data){alert("User not found.");return}const {error}=await db.from("direct_messages").insert({sender_id:currentUser.id,recipient_id:p.data.id,body});if(error)showError(error);else{alert("Message sent.");openFeature("messages")}};return;
+    }
+    if(name==="moderation"){
+      const {data,error}=await db.from("community_members").select("community_id,role,communities(name)").eq("user_id",currentUser.id).in("role",["owner","moderator"]);if(error)throw error;
+      $("#feed").innerHTML='<section class="panel feature-card"><h2>Community moderation</h2>'+((data||[]).map(m=>'<div class="feature-row"><b>lemon/'+escapeHTML(m.communities?.name||"community")+'</b> · '+escapeHTML(m.role)+'</div>').join("")||"You do not moderate any communities yet.")+'</section>';return;
+    }
+  }catch(error){showError(error)}
+}
+function featureCss(){if(document.getElementById("featureCss"))return;const style=document.createElement("style");style.id="featureCss";style.textContent=".feature-card{padding:20px;margin-bottom:14px}.feature-card h2{margin-top:0}.feature-card label{display:grid;gap:6px;margin:12px 0;font-weight:700;font-size:13px}.feature-card input,.feature-card textarea{padding:10px;border:1px solid var(--line);border-radius:9px;width:100%}.feature-row{padding:12px 4px;border-top:1px solid var(--line)}.feature-row small{display:block;color:var(--muted)}.feature-row.unread{background:#fff9d9}";document.head.append(style)}
 function render(){
   const list=getVisiblePosts();
   const titles={home:"Your home feed",popular:"Popular posts",new:"New posts",videos:"Videos",shorts:"Shorts"};
@@ -206,7 +255,7 @@ function render(){
   $("#feed").innerHTML=list.length?list.map(p=>{
     const c=community(p.community_id),vote=p.myVote||0;
     const media=renderPostMedia(p);
-    return '<article class="panel post" data-post="'+p.id+'"><div class="postmeta"><span>'+c.icon+'</span><span class="postcommunity">lemon/'+escapeHTML(c.name)+'</span><span class="dotsep">•</span><span>Posted by u/'+escapeHTML(p.author)+'</span><span class="dotsep">•</span><span>'+timeAgo(p.created_at)+'</span></div><h2>'+escapeHTML(p.title)+'</h2>'+media+'<div class="postbody">'+escapeHTML(p.body||"")+'</div><div class="postactions"><div class="vote"><button data-vote="1" class="'+(vote===1?"selected":"")+'" aria-label="Upvote">▲</button><strong>'+p.score+'</strong><button data-vote="-1" class="'+(vote===-1?"selected":"")+'" aria-label="Downvote">▼</button></div><button class="action" data-comments>▤ '+p.comments.length+' comments</button><button class="action" data-share>↗ Share</button></div><div class="comments" hidden><div class="comment-list">'+renderCommentTree(p.comments)+'</div><form class="comment-form"><input name="comment" maxlength="800" placeholder="'+(currentUser?"Add a comment...":"Sign in to comment")+'" required aria-label="Add a comment"><button class="btn small">Reply</button></form></div></article>';
+    return '<article class="panel post" data-post="'+p.id+'"><div class="postmeta"><span>'+c.icon+'</span><span class="postcommunity">lemon/'+escapeHTML(c.name)+'</span><span class="dotsep">•</span><span>Posted by u/'+escapeHTML(p.author)+'</span><span class="dotsep">•</span><span>'+timeAgo(p.created_at)+'</span></div><h2>'+escapeHTML(p.title)+'</h2>'+media+'<div class="postbody">'+escapeHTML(p.body||"")+'</div><div class="postactions"><div class="vote"><button data-vote="1" class="'+(vote===1?"selected":"")+'" aria-label="Upvote">▲</button><strong>'+p.score+'</strong><button data-vote="-1" class="'+(vote===-1?"selected":"")+'" aria-label="Downvote">▼</button></div><button class="action" data-comments>▤ '+p.comments.length+' comments</button><button class="action" data-save>▣ Save</button><button class="action" data-follow>♡ Follow</button><button class="action" data-report>⚑ Report</button><button class="action" data-edit>✎ Edit</button><button class="action" data-share>↗ Share</button></div><div class="comments" hidden><div class="comment-list">'+renderCommentTree(p.comments)+'</div><form class="comment-form"><input name="comment" maxlength="800" placeholder="'+(currentUser?"Add a comment...":"Sign in to comment")+'" required aria-label="Add a comment"><button class="btn small">Reply</button></form></div></article>';
   }).join(""):'<div class="panel empty"><b>No posts found</b>'+(feedMode==="videos"||feedMode==="shorts"?"Be the first to share one!":"Try another search or be the first to post in this community.")+'</div>';
 }
 function openModal(){if(!currentUser){openAuth("signin");return}$("#modal").classList.add("open");setTimeout(()=>$("#postTitle").focus(),50)}
@@ -245,9 +294,12 @@ $("#authModal").addEventListener("click",e=>{if(e.target.id==="authModal")closeA
 document.querySelectorAll("[data-auth-mode]").forEach(b=>b.addEventListener("click",()=>openAuth(b.dataset.authMode)));
 $("#search").addEventListener("input",e=>{searchTerm=e.target.value.trim().toLowerCase();render()});
 document.querySelectorAll("[data-sort]").forEach(b=>b.addEventListener("click",()=>{sortMode=b.dataset.sort;document.querySelectorAll("[data-sort]").forEach(x=>x.classList.toggle("active",x===b));render()}));
-document.querySelectorAll("[data-feed]").forEach(b=>b.addEventListener("click",()=>{feedMode=b.dataset.feed;selectedCommunity="all";document.querySelectorAll("[data-feed]").forEach(x=>x.classList.toggle("active",x===b));render()}));
+document.querySelectorAll("[data-feed]").forEach(b=>b.addEventListener("click",()=>{activeFeature="";specialPostIds=null;feedMode=b.dataset.feed;selectedCommunity="all";document.querySelectorAll("[data-feed]").forEach(x=>x.classList.toggle("active",x===b));document.querySelectorAll("[data-feature]").forEach(x=>x.classList.remove("active"));render()}));
+document.querySelectorAll("[data-feature]").forEach(b=>b.addEventListener("click",()=>openFeature(b.dataset.feature)));
+featureCss();
 document.addEventListener("click",async e=>{
-  const c=e.target.closest("[data-community]");if(c){selectCommunity(c.dataset.community);return}
+  const feature=e.target.closest("[data-feature]");if(feature){openFeature(feature.dataset.feature);return}
+  const c=e.target.closest("[data-community]");if(c){activeFeature="";specialPostIds=null;selectCommunity(c.dataset.community);return}
   const postEl=e.target.closest("[data-post]");if(!postEl)return;
   const p=posts.find(x=>x.id===postEl.dataset.post);if(!p)return;
   const voteBtn=e.target.closest("[data-vote]");
@@ -261,6 +313,10 @@ document.addEventListener("click",async e=>{
     await loadPosts();return;
   }
   if(e.target.closest("[data-comments]")){const box=postEl.querySelector(".comments");box.hidden=!box.hidden;return}
+  if(e.target.closest("[data-save]")){if(!currentUser){openAuth("signin");return}const exists=await db.from("saved_posts").select("post_id").eq("user_id",currentUser.id).eq("post_id",p.id).maybeSingle();if(exists.error){showError(exists.error);return}const result=exists.data?await db.from("saved_posts").delete().eq("user_id",currentUser.id).eq("post_id",p.id):await db.from("saved_posts").insert({user_id:currentUser.id,post_id:p.id});if(result.error)showError(result.error);else alert(exists.data?"Removed from saved posts.":"Post saved.");return}
+  if(e.target.closest("[data-follow]")){if(!currentUser){openAuth("signin");return}if(p.user_id===currentUser.id)return;const r=await db.from("follows").upsert({follower_id:currentUser.id,following_id:p.user_id},{onConflict:"follower_id,following_id"});if(r.error)showError(r.error);else alert("Following u/"+p.author);return}
+  if(e.target.closest("[data-report]")){if(!currentUser){openAuth("signin");return}const reason=prompt("Why are you reporting this post?");if(!reason||reason.trim().length<3)return;const r=await db.from("reports").insert({reporter_id:currentUser.id,target_type:"post",target_id:p.id,reason:reason.trim()});if(r.error)showError(r.error);else alert("Report sent for review.");return}
+  if(e.target.closest("[data-edit]")){if(!currentUser||p.user_id!==currentUser.id){alert("You can only edit your own posts.");return}const title=prompt("Edit post title:",p.title);if(title===null)return;const body=prompt("Edit post text:",p.body||"");if(body===null)return;const r=await db.from("posts").update({title:title.trim(),body:body.trim(),edited_at:new Date().toISOString(),updated_at:new Date().toISOString()}).eq("id",p.id).eq("user_id",currentUser.id);if(r.error)showError(r.error);else await loadPosts();return}
   const replyButton=e.target.closest("[data-reply]");if(replyButton){const form=postEl.querySelector('.reply-form[data-parent-id="'+replyButton.dataset.reply+'"]');if(form){form.hidden=!form.hidden;if(!form.hidden)form.querySelector("input").focus();}return;}
   if(e.target.closest("[data-share]")){const url=location.href.split("#")[0]+"#"+p.id;if(navigator.clipboard?.writeText)navigator.clipboard.writeText(url).then(()=>alert("Post link copied!")).catch(()=>alert(url));else alert(url)}
 });

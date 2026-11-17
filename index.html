@@ -30,7 +30,7 @@ button,input,textarea,select{font:inherit}button{cursor:pointer}
 .modal-backdrop{position:fixed;inset:0;background:#17181080;z-index:30;display:none;align-items:center;justify-content:center;padding:18px}.modal-backdrop.open{display:flex}.modal{width:min(560px,100%);background:white;border-radius:18px;padding:22px;box-shadow:0 20px 70px #0003}.modalhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}.modalhead h2{margin:0;font-size:21px}.close{border:0;background:#f1f1ec;border-radius:9px;width:34px;height:34px;font-size:20px}.field{display:grid;gap:6px;margin-bottom:13px}.field label{font-size:12px;font-weight:800;color:#55564e}.field input,.field textarea,.field select{width:100%;border:1px solid var(--line);border-radius:10px;padding:11px 12px;outline:none;background:white}.field textarea{min-height:125px;resize:vertical}.modalfoot{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
 footer{max-width:1320px;margin:0 auto 30px;padding:0 22px;color:#92938a;font-size:11px}
 @media(max-width:1100px){.layout{grid-template-columns:190px minmax(0,1fr)}.rightcol{display:none}}
-@media(max-width:700px){.topbar{height:60px;padding:0 13px;gap:12px}.brand{font-size:19px}.logo{height:33px;width:33px}.search{max-width:none}.top-actions .btn{display:none}.layout{display:block;margin:16px auto;padding:0 12px}.sidebar{display:none}.feed-head{align-items:flex-start;gap:10px;flex-direction:column}.post{padding:15px}.post h2{font-size:17px}.sortbar{width:100%}.sortbar button{flex:1}.composer{padding:11px}}
+@media(max-width:700px){.topbar{height:60px;padding:0 13px;gap:12px}.brand{font-size:19px}.logo{height:33px;width:33px}.search{max-width:none}.top-actions .btn{display:none}.layout{display:block;margin:16px auto;padding:0 12px}.sidebar{display:flex;position:static;overflow-x:auto;gap:4px;padding:8px;margin-bottom:12px}.sidebar .navitem{flex:0 0 auto;width:auto;padding:8px 10px}.sidebar .sideheading,.sidebar #communityList,.sidebar .notice{display:none}.feed-head{align-items:flex-start;gap:10px;flex-direction:column}.post{padding:15px}.post h2{font-size:17px}.sortbar{width:100%}.sortbar button{flex:1}.composer{padding:11px}}
 </style>
 </head>
 <body>
@@ -258,8 +258,10 @@ function authEmailForUsername(username){return username.toLowerCase()+"@users.le
 $("#authForm").addEventListener("submit",async e=>{
   e.preventDefault();const message=$("#authMessage");showMessage(message,"Working...");
   const username=$("#authUsername").value.trim().toLowerCase(),password=$("#authPassword").value;
-  if(!/^[a-z0-9_]{3,24}$/.test(username)){showMessage(message,"Username must be 3–24 characters: letters, numbers, underscores.",true);return}
-  const email=authEmailForUsername(username);
+  const validUsername=/^[a-z0-9_]{3,24}$/.test(username);
+  if(authMode==="signup"&&!validUsername){showMessage(message,"Username must be 3–24 characters: letters, numbers, underscores.",true);return}
+  if(authMode==="signin"&&!validUsername&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(username)){showMessage(message,"Enter your username.",true);return}
+  const email=authMode==="signin"&&username.includes("@")?username:authEmailForUsername(username);
   if(authMode==="signup"){
     const {data,error}=await db.auth.signUp({email,password,options:{data:{username}}});
     if(error){showMessage(message,error.message,true);return}
@@ -270,8 +272,7 @@ $("#authForm").addEventListener("submit",async e=>{
     currentUser=data.user;try{profile=await ensureProfile(currentUser)}catch(err){showMessage(message,err.message,true);return}
     setAuthUI();closeAuth();await refreshAll();
   }else{
-    let result=await db.auth.signInWithPassword({email,password});
-    if(result.error)result=await db.auth.signInWithPassword({email:username,password});
+    const result=await db.auth.signInWithPassword({email,password});
     if(result.error){showMessage(message,result.error.message,true);return}
     currentUser=result.data.user;try{profile=await ensureProfile(currentUser)}catch(err){showMessage(message,err.message,true);return}
     setAuthUI();closeAuth();await refreshAll();

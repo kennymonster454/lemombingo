@@ -186,7 +186,7 @@ function openModal(){if(!currentUser){openAuth("signin");return}$("#modal").clas
 function closeModal(){$("#modal").classList.remove("open")}
 function openAuth(mode="signin"){
   authMode=mode;$("#authModal").classList.add("open");$("#authTitle").textContent=mode==="signup"?"Create your LemonBingo account":"Sign in to LemonBingo";
-  $("#usernameField").hidden=mode!=="signup";$("#authPassword").autocomplete=mode==="signup"?"new-password":"current-password";
+  $("#authUsername").autocomplete="username";$("#authPassword").autocomplete=mode==="signup"?"new-password":"current-password";
   $("#authSubmit").textContent=mode==="signup"?"Create account":"Sign in";$("#authMessage").textContent="";
   document.querySelectorAll("[data-auth-mode]").forEach(b=>b.classList.toggle("active",b.dataset.authMode===mode));
 }
@@ -205,6 +205,12 @@ function connectRealtime(){
 $("#topCreate").onclick=$("#composerButton").onclick=$("#openComposer").onclick=$("#welcomeCreate").onclick=openModal;
 $("#closeModal").onclick=$("#cancelPost").onclick=closeModal;
 $("#authButton").onclick=()=>openAuth("signin");
+$("#postType").addEventListener("change",()=>{
+  const mediaPost=$("#postType").value!=="text";
+  $("#mediaUrlField").hidden=!mediaPost;
+  $("#mediaUrl").required=mediaPost;
+  $("#postBody").required=!mediaPost;
+});
 $("#closeAuth").onclick=closeAuth;
 $("#signOutButton").onclick=async()=>{const {error}=await db.auth.signOut();if(error)showError(error)};
 $("#modal").addEventListener("click",e=>{if(e.target.id==="modal")closeModal()});
@@ -241,31 +247,33 @@ document.addEventListener("submit",async e=>{
 });
 $("#postForm").addEventListener("submit",async e=>{
   e.preventDefault();if(!currentUser){openAuth("signin");return}
-  const title=$("#postTitle").value.trim(),body=$("#postBody").value.trim(),communityId=$("#postCommunity").value;if(!title||!body)return;
-  const {error}=await db.from("posts").insert({community_id:communityId,user_id:currentUser.id,title,body});
+  const title=$("#postTitle").value.trim(),body=$("#postBody").value.trim(),communityId=$("#postCommunity").value,postType=$("#postType").value,mediaUrl=$("#mediaUrl").value.trim();
+  if(!title||(postType==="text"&&!body)||(postType!=="text"&&!mediaUrl))return;
+  if(postType!=="text"){try{const u=new URL(mediaUrl);if(u.protocol!=="https:")throw new Error("Use an HTTPS video link.");}catch(err){showError(err);return}}
+  const {error}=await db.from("posts").insert({community_id:communityId,user_id:currentUser.id,title,body,post_type:postType,media_url:postType==="text"?null:mediaUrl});
   if(error){showError(error);return}
-  $("#postForm").reset();closeModal();selectedCommunity="all";feedMode="home";searchTerm="";$("#search").value="";await loadPosts();
+  $("#postForm").reset();$("#mediaUrlField").hidden=true;$("#mediaUrl").required=false;$("#postBody").required=true;closeModal();selectedCommunity="all";feedMode="home";searchTerm="";$("#search").value="";await loadPosts();
 });
+function authEmailForUsername(username){return username.toLowerCase()+"@users.lemonbingo.invalid"}
 $("#authForm").addEventListener("submit",async e=>{
   e.preventDefault();const message=$("#authMessage");showMessage(message,"Working...");
-  const email=$("#authEmail").value.trim(),password=$("#authPassword").value;
+  const username=$("#authUsername").value.trim().toLowerCase(),password=$("#authPassword").value;
+  if(!/^[a-z0-9_]{3,24}$/.test(username)){showMessage(message,"Username must be 3–24 characters: letters, numbers, underscores.",true);return}
+  const email=authEmailForUsername(username);
   if(authMode==="signup"){
-    const username=$("#authUsername").value.trim().toLowerCase();
-    if(!/^[a-z0-9_]{3,24}$/.test(username)){showMessage(message,"Username must be 3–24 characters: letters, numbers, underscores.",true);return}
     const {data,error}=await db.auth.signUp({email,password,options:{data:{username}}});
     if(error){showMessage(message,error.message,true);return}
-    if(data.session){
-      await db.auth.signOut();
-      currentUser=null;profile=null;setAuthUI();
-      showMessage(message,"Signup verification is OFF in the Supabase project, so no email code was sent. Enable Auth → Sign In / Providers → Email → Confirm signups, then try again.",true);
+    if(!data.session){
+      showMessage(message,"Email confirmation is still enabled in Supabase. Turn off Confirm email in Authentication → Sign In / Providers → Email to finish username-only signup.",true);
       return;
     }
-    sessionStorage.setItem("lemonbingo_verify_email",email);
-    location.href="verify.html?email="+encodeURIComponent(email);
-  }else{
-    const {data,error}=await db.auth.signInWithPassword({email,password});
-    if(error){showMessage(message,error.message,true);return}
     currentUser=data.user;try{profile=await ensureProfile(currentUser)}catch(err){showMessage(message,err.message,true);return}
+    setAuthUI();closeAuth();await refreshAll();
+  }else{
+    let result=await db.auth.signInWithPassword({email,password});
+    if(result.error)result=await db.auth.signInWithPassword({email:username,password});
+    if(result.error){showMessage(message,result.error.message,true);return}
+    currentUser=result.data.user;try{profile=await ensureProfile(currentUser)}catch(err){showMessage(message,err.message,true);return}
     setAuthUI();closeAuth();await refreshAll();
   }
 });

@@ -46,3 +46,13 @@ Existing accounts that were created with real email addresses can still sign in 
 
 - The initial communities are seeded in the database.
 - This is an early community-site build. Video file uploads, moderation, reporting, image uploads, and password-reset UI are not included yet.
+
+## Community features
+
+LemonBingo includes public community feeds, text/video/Shorts posts, image and video uploads through Supabase Storage, threaded comments, voting, polls, saved posts, followed-user feeds, profile editing, notifications, community creation, reports, moderator review, user blocking, and mutual-follow-only direct messages.
+
+### Supabase setup
+
+The current app uses the public Supabase project configured in `index.html`. The schema includes tables for `saved_posts`, `follows`, `notifications`, `user_blocks`, `direct_messages`, `community_members`, `reports`, `polls`, `poll_options`, and `poll_votes`. Media is stored in the public `lemon-media` bucket with authenticated uploads restricted to each user's own folder.
+
+The app is open source. Contributions and forks are welcome; review database policies before deploying schema changes to another Supabase project.

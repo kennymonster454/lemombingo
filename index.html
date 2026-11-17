@@ -140,7 +140,7 @@ function renderCommunities(){
   $("#postCommunity").innerHTML=communities.map(c=>'<option value="'+c.id+'">lemon/'+escapeHTML(c.name)+'</option>').join("");
 }
 async function loadPosts(){
-  const {data:raw,error}=await db.from("posts").select("id,community_id,user_id,title,body,created_at,profiles(username),communities(name)").order("created_at",{ascending:false}).limit(100);
+  const {data:raw,error}=await db.from("posts").select("id,community_id,user_id,title,body,post_type,media_url,created_at,profiles(username),communities(name)").order("created_at",{ascending:false}).limit(100);
   if(error)throw error;
   const ids=(raw||[]).map(p=>p.id);
   let comments=[],votes=[];
@@ -163,7 +163,7 @@ async function loadPosts(){
   render();
 }
 function getVisiblePosts(){
-  let list=posts.filter(p=>(selectedCommunity==="all"||p.community_id===selectedCommunity)&&(!searchTerm||(p.title+" "+p.body+" "+p.community+" "+p.author).toLowerCase().includes(searchTerm)));
+  let list=posts.filter(p=>(selectedCommunity==="all"||p.community_id===selectedCommunity)&&(feedMode!=="videos"||p.post_type==="video")&&(feedMode!=="shorts"||p.post_type==="short")&&(!searchTerm||(p.title+" "+p.body+" "+p.community+" "+p.author).toLowerCase().includes(searchTerm)));
   if(feedMode==="popular")list=list.filter(p=>p.score>=0);
   if(sortMode==="new"||feedMode==="new")list.sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
   else if(sortMode==="top")list.sort((a,b)=>b.score-a.score);
@@ -172,11 +172,15 @@ function getVisiblePosts(){
 }
 function render(){
   const list=getVisiblePosts();
-  $("#feedTitle").textContent=selectedCommunity==="all"?(feedMode==="popular"?"Popular posts":feedMode==="new"?"New posts":"Your home feed"):"lemon/"+community(selectedCommunity).name;
+  const titles={home:"Your home feed",popular:"Popular posts",new:"New posts",videos:"Videos",shorts:"Shorts"};
+  $("#feedTitle").textContent=selectedCommunity==="all"?(titles[feedMode]||"Your home feed"):"lemon/"+community(selectedCommunity).name;
   $("#feed").innerHTML=list.length?list.map(p=>{
     const c=community(p.community_id),vote=p.myVote||0;
-    return '<article class="panel post" data-post="'+p.id+'"><div class="postmeta"><span>'+c.icon+'</span><span class="postcommunity">lemon/'+escapeHTML(c.name)+'</span><span class="dotsep">•</span><span>Posted by u/'+escapeHTML(p.author)+'</span><span class="dotsep">•</span><span>'+timeAgo(p.created_at)+'</span></div><h2>'+escapeHTML(p.title)+'</h2><div class="postbody">'+escapeHTML(p.body)+'</div><div class="postactions"><div class="vote"><button data-vote="1" class="'+(vote===1?"selected":"")+'" aria-label="Upvote">▲</button><strong>'+p.score+'</strong><button data-vote="-1" class="'+(vote===-1?"selected":"")+'" aria-label="Downvote">▼</button></div><button class="action" data-comments>▤ '+p.comments.length+' comments</button><button class="action" data-share>↗ Share</button></div><div class="comments" hidden><div class="comment-list">'+p.comments.map(cm=>'<div class="comment"><strong>u/'+escapeHTML(cm.author)+'</strong><p>'+escapeHTML(cm.body)+'</p></div>').join("")+'</div><form class="comment-form"><input name="comment" maxlength="800" placeholder="'+(currentUser?"Add a comment...":"Sign in to comment")+'" required aria-label="Add a comment"><button class="btn small">Reply</button></form></div></article>';
-  }).join(""):'<div class="panel empty"><b>No posts found</b>Try another search or be the first to post in this community.</div>';
+    const media=p.media_url&&/^https:\/\//i.test(p.media_url)
+      ?'<video class="media-player '+(p.post_type==="short"?"short-player":"")+'" controls playsinline preload="metadata" src="'+escapeHTML(p.media_url)+'"></video>'
+      :"";
+    return '<article class="panel post" data-post="'+p.id+'"><div class="postmeta"><span>'+c.icon+'</span><span class="postcommunity">lemon/'+escapeHTML(c.name)+'</span><span class="dotsep">•</span><span>Posted by u/'+escapeHTML(p.author)+'</span><span class="dotsep">•</span><span>'+timeAgo(p.created_at)+'</span></div><h2>'+escapeHTML(p.title)+'</h2>'+media+'<div class="postbody">'+escapeHTML(p.body||"")+'</div><div class="postactions"><div class="vote"><button data-vote="1" class="'+(vote===1?"selected":"")+'" aria-label="Upvote">▲</button><strong>'+p.score+'</strong><button data-vote="-1" class="'+(vote===-1?"selected":"")+'" aria-label="Downvote">▼</button></div><button class="action" data-comments>▤ '+p.comments.length+' comments</button><button class="action" data-share>↗ Share</button></div><div class="comments" hidden><div class="comment-list">'+p.comments.map(cm=>'<div class="comment"><strong>u/'+escapeHTML(cm.author)+'</strong><p>'+escapeHTML(cm.body)+'</p></div>').join("")+'</div><form class="comment-form"><input name="comment" maxlength="800" placeholder="'+(currentUser?"Add a comment...":"Sign in to comment")+'" required aria-label="Add a comment"><button class="btn small">Reply</button></form></div></article>';
+  }).join(""):'<div class="panel empty"><b>No posts found</b>'+(feedMode==="videos"||feedMode==="shorts"?"Be the first to share one!":"Try another search or be the first to post in this community.")+'</div>';
 }
 function openModal(){if(!currentUser){openAuth("signin");return}$("#modal").classList.add("open");setTimeout(()=>$("#postTitle").focus(),50)}
 function closeModal(){$("#modal").classList.remove("open")}

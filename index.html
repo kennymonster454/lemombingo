@@ -23,6 +23,9 @@ button,input,textarea,select{font:inherit}button{cursor:pointer}
 .comments{border-top:1px solid var(--line);margin-top:14px;padding-top:13px}.comment{padding:8px 0;border-bottom:1px solid #f0f0eb}.comment strong{font-size:12px}.comment p{margin:3px 0;color:#55564e}.comment-form{display:flex;gap:8px;margin-top:12px}.comment-form input{min-width:0;flex:1;border:1px solid var(--line);border-radius:9px;padding:9px 11px;outline:none}.comment-form input:focus,.field input:focus,.field textarea:focus,.field select:focus{border-color:#d7c24e}
 .rightcol{display:grid;gap:14px}.welcome{padding:18px;background:linear-gradient(145deg,#fff9d9,#fff);}.welcome h2{margin:0 0 6px;font-size:18px}.welcome p{margin:0 0 14px;color:#68695f;font-size:13px}.rightpanel{padding:17px}.rightpanel h3{font-size:14px;margin:0 0 12px}.trend{display:flex;gap:10px;padding:10px 0;border-top:1px solid #f0f0eb}.trend:first-of-type{border-top:0}.trendnum{font-size:12px;color:#a1a196;font-weight:800}.trend strong{display:block;font-size:13px}.trend small{color:var(--muted)}
 .notice{font-size:12px;color:#77786f;background:#f7f7f2;border-radius:10px;padding:11px 12px;margin-top:13px}
+.media-player{display:block;width:100%;max-height:440px;aspect-ratio:16/9;object-fit:contain;background:#111;border-radius:13px;margin:13px 0}
+.short-player{width:min(100%,360px);max-height:640px;aspect-ratio:9/16;margin:14px auto}
+.media-note{font-size:12px;color:var(--muted);margin-top:-5px}
 .empty{padding:42px 20px;text-align:center;color:var(--muted)}.empty b{display:block;color:var(--ink);font-size:18px;margin-bottom:5px}
 .modal-backdrop{position:fixed;inset:0;background:#17181080;z-index:30;display:none;align-items:center;justify-content:center;padding:18px}.modal-backdrop.open{display:flex}.modal{width:min(560px,100%);background:white;border-radius:18px;padding:22px;box-shadow:0 20px 70px #0003}.modalhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}.modalhead h2{margin:0;font-size:21px}.close{border:0;background:#f1f1ec;border-radius:9px;width:34px;height:34px;font-size:20px}.field{display:grid;gap:6px;margin-bottom:13px}.field label{font-size:12px;font-weight:800;color:#55564e}.field input,.field textarea,.field select{width:100%;border:1px solid var(--line);border-radius:10px;padding:11px 12px;outline:none;background:white}.field textarea{min-height:125px;resize:vertical}.modalfoot{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
 footer{max-width:1320px;margin:0 auto 30px;padding:0 22px;color:#92938a;font-size:11px}
@@ -41,6 +44,8 @@ footer{max-width:1320px;margin:0 auto 30px;padding:0 22px;color:#92938a;font-siz
 <button class="navitem active" data-feed="home"><span class="navicon">⌂</span> Home</button>
 <button class="navitem" data-feed="popular"><span class="navicon">↗</span> Popular</button>
 <button class="navitem" data-feed="new"><span class="navicon">◷</span> New</button>
+<button class="navitem" data-feed="videos"><span class="navicon">▶</span> Videos</button>
+<button class="navitem" data-feed="shorts"><span class="navicon">▣</span> Shorts</button>
 <div class="sideheading">Your communities</div>
 <div id="communityList"></div>
 <div class="notice">A little corner of the internet for every interest.</div>
@@ -62,8 +67,7 @@ footer{max-width:1320px;margin:0 auto 30px;padding:0 22px;color:#92938a;font-siz
 <div class="modalhead"><h2 id="authTitle">Sign in to LemonBingo</h2><button class="close" id="closeAuth" aria-label="Close">×</button></div>
 <div class="sortbar" style="margin-bottom:16px"><button type="button" class="active" data-auth-mode="signin">Sign in</button><button type="button" data-auth-mode="signup">Create account</button></div>
 <form id="authForm">
-<div class="field" id="usernameField" hidden><label for="authUsername">USERNAME (PUBLIC)</label><input id="authUsername" maxlength="24" minlength="3" autocomplete="username" placeholder="letters, numbers, underscores"></div>
-<div class="field"><label for="authEmail">EMAIL (PRIVATE)</label><input id="authEmail" type="email" autocomplete="email" required placeholder="you@example.com"></div>
+<div class="field"><label for="authUsername">USERNAME</label><input id="authUsername" maxlength="24" minlength="3" autocomplete="username" placeholder="letters, numbers, underscores" required></div>
 <div class="field"><label for="authPassword">PASSWORD</label><input id="authPassword" type="password" minlength="8" autocomplete="current-password" required placeholder="At least 8 characters"></div>
 <p id="authMessage" style="font-size:13px;color:#68695f;min-height:20px"></p>
 <div class="modalfoot"><button class="btn" type="submit" id="authSubmit">Sign in</button></div>
@@ -75,8 +79,10 @@ footer{max-width:1320px;margin:0 auto 30px;padding:0 22px;color:#92938a;font-siz
 <div class="modalhead"><h2 id="modalTitle">Create a post</h2><button class="close" id="closeModal" aria-label="Close">×</button></div>
 <form id="postForm">
 <div class="field"><label for="postCommunity">COMMUNITY</label><select id="postCommunity" required></select></div>
+<div class="field"><label for="postType">POST TYPE</label><select id="postType"><option value="text">Text post</option><option value="video">Video</option><option value="short">Short</option></select></div>
 <div class="field"><label for="postTitle">TITLE</label><input id="postTitle" maxlength="180" placeholder="Give your post a clear title" required></div>
-<div class="field"><label for="postBody">WHAT'S ON YOUR MIND?</label><textarea id="postBody" maxlength="5000" placeholder="Share the details..." required></textarea></div>
+<div class="field" id="mediaUrlField" hidden><label for="mediaUrl">VIDEO URL</label><input id="mediaUrl" type="url" inputmode="url" placeholder="https://example.com/video.mp4"><span class="media-note">Use a direct HTTPS link to an MP4, WebM, or OGG video. Video uploads are not enabled yet.</span></div>
+<div class="field"><label for="postBody">CAPTION / DESCRIPTION</label><textarea id="postBody" maxlength="5000" placeholder="Add a caption..."></textarea></div>
 <div class="modalfoot"><button type="button" class="btn secondary" id="cancelPost">Cancel</button><button class="btn" type="submit">Publish post</button></div>
 </form>
 </div>

@@ -20,7 +20,7 @@ button,input,textarea,select{font:inherit}button{cursor:pointer}
 .composer{padding:15px;margin-bottom:14px;display:flex;gap:11px;align-items:center}.avatar{height:38px;width:38px;border-radius:50%;background:#e8efdd;display:grid;place-items:center;font-weight:850;color:#476346;flex-shrink:0}.fakeinput{flex:1;text-align:left;border:1px solid var(--line);border-radius:10px;background:#f8f8f5;padding:10px 13px;color:#8a8b82}.fakeinput:hover{border-color:#d7c24e;background:white}
 .post{padding:17px 18px;margin-bottom:13px}.postmeta{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:12px;flex-wrap:wrap}.postcommunity{color:#414238;font-weight:800}.dotsep{color:#b8b8ae}.post h2{font-size:19px;line-height:1.3;letter-spacing:-.3px;margin:12px 0 7px}.postbody{color:#55564e;white-space:pre-wrap;overflow-wrap:anywhere}.postimage{margin-top:13px;border-radius:12px;background:#f7f0c6;padding:30px;text-align:center;font-size:42px}
 .postactions{display:flex;align-items:center;gap:8px;margin-top:15px}.vote{display:flex;align-items:center;gap:3px;background:#f3f3ee;border-radius:9px;padding:5px}.vote button{border:0;background:transparent;border-radius:6px;padding:2px 5px;color:#74756c;font-size:17px}.vote button.selected{color:#bd8b00}.vote strong{font-size:12px;min-width:16px;text-align:center}.action{border:0;background:transparent;color:#77786f;padding:7px 9px;border-radius:8px;font-size:13px;font-weight:700}.action:hover{background:#f2f2ed;color:#333}
-.comments{border-top:1px solid var(--line);margin-top:14px;padding-top:13px}.comment{padding:8px 0;border-bottom:1px solid #f0f0eb}.comment strong{font-size:12px}.comment p{margin:3px 0;color:#55564e}.comment-form{display:flex;gap:8px;margin-top:12px}.comment-form input{min-width:0;flex:1;border:1px solid var(--line);border-radius:9px;padding:9px 11px;outline:none}.comment-form input:focus,.field input:focus,.field textarea:focus,.field select:focus{border-color:#d7c24e}
+.comments{border-top:1px solid var(--line);margin-top:14px;padding-top:13px}.comment{padding:8px 0;border-bottom:1px solid #f0f0eb}.comment strong{font-size:12px}.comment p{margin:3px 0;color:#55564e}.comment-heading{display:flex;align-items:center;gap:10px}.reply-toggle{border:0;background:transparent;color:#77786f;font-size:11px;cursor:pointer}.comment-children{margin:8px 0 0 12px;padding-left:12px;border-left:2px solid #eeeede}.reply-form{display:flex;gap:8px;margin:8px 0}.reply-form input{min-width:0;flex:1;border:1px solid var(--line);border-radius:9px;padding:8px 10px}.comment-form{display:flex;gap:8px;margin-top:12px}.comment-form input{min-width:0;flex:1;border:1px solid var(--line);border-radius:9px;padding:9px 11px;outline:none}.comment-form input:focus,.field input:focus,.field textarea:focus,.field select:focus{border-color:#d7c24e}
 .rightcol{display:grid;gap:14px}.welcome{padding:18px;background:linear-gradient(145deg,#fff9d9,#fff);}.welcome h2{margin:0 0 6px;font-size:18px}.welcome p{margin:0 0 14px;color:#68695f;font-size:13px}.rightpanel{padding:17px}.rightpanel h3{font-size:14px;margin:0 0 12px}.trend{display:flex;gap:10px;padding:10px 0;border-top:1px solid #f0f0eb}.trend:first-of-type{border-top:0}.trendnum{font-size:12px;color:#a1a196;font-weight:800}.trend strong{display:block;font-size:13px}.trend small{color:var(--muted)}
 .notice{font-size:12px;color:#77786f;background:#f7f7f2;border-radius:10px;padding:11px 12px;margin-top:13px}
 .media-player{display:block;width:100%;max-height:440px;aspect-ratio:16/9;object-fit:contain;background:#111;border-radius:13px;margin:13px 0}
@@ -146,7 +146,7 @@ async function loadPosts(){
   let comments=[],votes=[];
   if(ids.length){
     const [cr,vr]=await Promise.all([
-      db.from("comments").select("id,post_id,user_id,body,created_at,profiles(username)").in("post_id",ids).order("created_at"),
+      db.from("comments").select("id,post_id,user_id,parent_id,body,created_at,profiles(username)").in("post_id",ids).order("created_at"),
       db.from("votes").select("post_id,user_id,value").in("post_id",ids)
     ]);
     if(cr.error)throw cr.error;
@@ -158,7 +158,7 @@ async function loadPosts(){
     return {...p,author:p.profiles?.username||"member",community:p.communities?.name||"general",
       score:pv.reduce((n,v)=>n+v.value,0),
       myVote:pv.find(v=>v.user_id===currentUser?.id)?.value||0,
-      comments:comments.filter(c=>c.post_id===p.id).map(c=>({id:c.id,author:c.profiles?.username||"member",body:c.body,created_at:c.created_at}))};
+      comments:comments.filter(c=>c.post_id===p.id).map(c=>({id:c.id,parent_id:c.parent_id||null,author:c.profiles?.username||"member",body:c.body,created_at:c.created_at}))};
   });
   render();
 }
@@ -190,6 +190,15 @@ function renderPostMedia(p){
   }
   return '<p class="media-note">This video link format is not supported yet. Use a YouTube link or a direct MP4, WebM, or OGG link.</p>';
 }
+function renderCommentTree(comments){
+  const children=new Map();
+  for(const comment of comments){const key=comment.parent_id||"";if(!children.has(key))children.set(key,[]);children.get(key).push(comment);}
+  const render=(parentId="",depth=0)=>{
+    if(depth>12)return "";
+    return (children.get(parentId)||[]).map(cm=>'<div class="comment"><div class="comment-heading"><strong>u/'+escapeHTML(cm.author)+'</strong><button class="reply-toggle" type="button" data-reply="'+cm.id+'">Reply</button></div><p>'+escapeHTML(cm.body)+'</p><form class="reply-form" data-parent-id="'+cm.id+'" hidden><input name="comment" maxlength="800" placeholder="Write a reply..." required aria-label="Write a reply"><button class="btn small">Reply</button></form><div class="comment-children">'+render(cm.id,depth+1)+'</div></div>').join("");
+  };
+  return render();
+}
 function render(){
   const list=getVisiblePosts();
   const titles={home:"Your home feed",popular:"Popular posts",new:"New posts",videos:"Videos",shorts:"Shorts"};
@@ -197,7 +206,7 @@ function render(){
   $("#feed").innerHTML=list.length?list.map(p=>{
     const c=community(p.community_id),vote=p.myVote||0;
     const media=renderPostMedia(p);
-    return '<article class="panel post" data-post="'+p.id+'"><div class="postmeta"><span>'+c.icon+'</span><span class="postcommunity">lemon/'+escapeHTML(c.name)+'</span><span class="dotsep">•</span><span>Posted by u/'+escapeHTML(p.author)+'</span><span class="dotsep">•</span><span>'+timeAgo(p.created_at)+'</span></div><h2>'+escapeHTML(p.title)+'</h2>'+media+'<div class="postbody">'+escapeHTML(p.body||"")+'</div><div class="postactions"><div class="vote"><button data-vote="1" class="'+(vote===1?"selected":"")+'" aria-label="Upvote">▲</button><strong>'+p.score+'</strong><button data-vote="-1" class="'+(vote===-1?"selected":"")+'" aria-label="Downvote">▼</button></div><button class="action" data-comments>▤ '+p.comments.length+' comments</button><button class="action" data-share>↗ Share</button></div><div class="comments" hidden><div class="comment-list">'+p.comments.map(cm=>'<div class="comment"><strong>u/'+escapeHTML(cm.author)+'</strong><p>'+escapeHTML(cm.body)+'</p></div>').join("")+'</div><form class="comment-form"><input name="comment" maxlength="800" placeholder="'+(currentUser?"Add a comment...":"Sign in to comment")+'" required aria-label="Add a comment"><button class="btn small">Reply</button></form></div></article>';
+    return '<article class="panel post" data-post="'+p.id+'"><div class="postmeta"><span>'+c.icon+'</span><span class="postcommunity">lemon/'+escapeHTML(c.name)+'</span><span class="dotsep">•</span><span>Posted by u/'+escapeHTML(p.author)+'</span><span class="dotsep">•</span><span>'+timeAgo(p.created_at)+'</span></div><h2>'+escapeHTML(p.title)+'</h2>'+media+'<div class="postbody">'+escapeHTML(p.body||"")+'</div><div class="postactions"><div class="vote"><button data-vote="1" class="'+(vote===1?"selected":"")+'" aria-label="Upvote">▲</button><strong>'+p.score+'</strong><button data-vote="-1" class="'+(vote===-1?"selected":"")+'" aria-label="Downvote">▼</button></div><button class="action" data-comments>▤ '+p.comments.length+' comments</button><button class="action" data-share>↗ Share</button></div><div class="comments" hidden><div class="comment-list">'+renderCommentTree(p.comments)+'</div><form class="comment-form"><input name="comment" maxlength="800" placeholder="'+(currentUser?"Add a comment...":"Sign in to comment")+'" required aria-label="Add a comment"><button class="btn small">Reply</button></form></div></article>';
   }).join(""):'<div class="panel empty"><b>No posts found</b>'+(feedMode==="videos"||feedMode==="shorts"?"Be the first to share one!":"Try another search or be the first to post in this community.")+'</div>';
 }
 function openModal(){if(!currentUser){openAuth("signin");return}$("#modal").classList.add("open");setTimeout(()=>$("#postTitle").focus(),50)}
@@ -252,9 +261,16 @@ document.addEventListener("click",async e=>{
     await loadPosts();return;
   }
   if(e.target.closest("[data-comments]")){const box=postEl.querySelector(".comments");box.hidden=!box.hidden;return}
+  const replyButton=e.target.closest("[data-reply]");if(replyButton){const form=postEl.querySelector('.reply-form[data-parent-id="'+replyButton.dataset.reply+'"]');if(form){form.hidden=!form.hidden;if(!form.hidden)form.querySelector("input").focus();}return;}
   if(e.target.closest("[data-share]")){const url=location.href.split("#")[0]+"#"+p.id;if(navigator.clipboard?.writeText)navigator.clipboard.writeText(url).then(()=>alert("Post link copied!")).catch(()=>alert(url));else alert(url)}
 });
 document.addEventListener("submit",async e=>{
+  if(e.target.classList.contains("reply-form")){
+    e.preventDefault();if(!currentUser){openAuth("signin");return}
+    const article=e.target.closest("[data-post]"),p=posts.find(x=>x.id===article?.dataset.post),body=e.target.elements.comment.value.trim(),parent_id=e.target.dataset.parentId;if(!p||!body)return;
+    const {error}=await db.from("comments").insert({post_id:p.id,user_id:currentUser.id,parent_id,body});
+    if(error){showError(error);return}await loadPosts();const card=document.querySelector('[data-post="'+p.id+'"] .comments');if(card)card.hidden=false;return;
+  }
   if(e.target.classList.contains("comment-form")){
     e.preventDefault();if(!currentUser){openAuth("signin");return}
     const p=posts.find(x=>x.id===e.target.closest("[data-post]").dataset.post),body=e.target.elements.comment.value.trim();if(!body)return;

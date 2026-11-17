@@ -245,7 +245,7 @@ $("#authForm").addEventListener("submit",async e=>{
     const {data,error}=await db.auth.signUp({email,password,options:{data:{username}}});
     if(error){showMessage(message,error.message,true);return}
     if(data.session){currentUser=data.user;profile=await ensureProfile(currentUser);setAuthUI();closeAuth();await refreshAll()}
-    else showMessage(message,"Account created. Check your email to confirm it, then sign in.");
+    else { sessionStorage.setItem("lemonbingo_verify_email",email); location.href="verify.html?email="+encodeURIComponent(email); }
   }else{
     const {data,error}=await db.auth.signInWithPassword({email,password});
     if(error){showMessage(message,error.message,true);return}

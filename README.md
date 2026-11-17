@@ -1,26 +1,38 @@
 # LemonBingo 🍋
 
-LemonBingo is a Reddit-style community website prototype.
+LemonBingo is a Reddit-style community website connected to Supabase.
 
-## Current features
+## Features
 
+- Shared accounts with email and password
+- Public profiles with unique usernames
+- Shared communities, posts, comments, and votes
+- Live updates across open browsers
 - Home, popular, and new feeds
-- Topic communities
-- Create text posts
-- Upvote and downvote posts
-- Comment on posts
-- Search post titles, text, authors, and communities
 - Hot, new, and top sorting
+- Search posts and communities
 - Responsive desktop and mobile layout
 
-## Run it
+## Deploy
 
-This is a static website. Open `index.html` in a browser, or deploy the repository to Vercel.
+The site is a static frontend. Connect this repository to Vercel and deploy the `main` branch. No build command is required.
 
-No build command or dependencies are required. Vercel can deploy the repository directly from GitHub when the repository is connected to a Vercel project.
+The frontend connects to the LemonBingo Supabase project using its public publishable key. That key is intended for browser use; database access is restricted with Row Level Security (RLS). Never put a Supabase secret or service-role key in this repository.
 
-## Important prototype limitation
+## Backend
 
-Right now, posts and comments are stored in the browser's local storage. They are visible only in that browser on that device. There is no real sign-in, shared database, moderation system, or cross-device sync yet.
+Supabase stores the app's data in these tables:
 
-Do not use this prototype to store private information. The next major step for a real multi-user site is connecting a backend database and adding secure authentication and server-side permissions.
+- `profiles`
+- `communities`
+- `posts`
+- `comments`
+- `votes`
+
+RLS is enabled on every table. Visitors can read public community content; signed-in users can create content and can edit or delete only their own rows. A user can have one vote per post.
+
+## Notes
+
+- New accounts may need to confirm their email before signing in, depending on the Supabase Auth settings.
+- The initial communities are seeded in the database.
+- This is an early community-site build. Moderation, reporting, image uploads, and password-reset UI are not included yet.

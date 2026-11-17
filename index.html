@@ -170,15 +170,33 @@ function getVisiblePosts(){
   else list.sort((a,b)=>(b.score-(Date.now()-new Date(b.created_at).getTime())/3600000*.02)-(a.score-(Date.now()-new Date(a.created_at).getTime())/3600000*.02));
   return list;
 }
+function renderPostMedia(p){
+  if(!p.media_url)return "";
+  let url;try{url=new URL(p.media_url);if(url.protocol!=="https:")return "";}catch{return ""}
+  let host=url.hostname.toLowerCase();if(host.startsWith("www."))host=host.slice(4);
+  let videoId="";
+  if(host==="youtu.be")videoId=url.pathname.split("/").filter(Boolean)[0]||"";
+  else if(host==="youtube.com"||host==="m.youtube.com"||host==="youtube-nocookie.com"){
+    videoId=url.searchParams.get("v")||"";
+    const parts=url.pathname.split("/").filter(Boolean);
+    if(!videoId&&(parts[0]==="shorts"||parts[0]==="embed"))videoId=parts[1]||"";
+  }
+  if(/^[a-zA-Z0-9_-]{11}$/.test(videoId)){
+    return '<iframe class="media-player '+(p.post_type==="short"?"short-player":"")+'" src="https://www.youtube-nocookie.com/embed/'+videoId+'" title="'+escapeHTML(p.title)+'" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>';
+  }
+  const path=(url.pathname+url.search).toLowerCase();
+  if([".mp4",".webm",".ogg"].some(ext=>path.includes(ext))){
+    return '<video class="media-player '+(p.post_type==="short"?"short-player":"")+'" controls playsinline preload="metadata" src="'+escapeHTML(url.href)+'"></video>';
+  }
+  return '<p class="media-note">This video link format is not supported yet. Use a YouTube link or a direct MP4, WebM, or OGG link.</p>';
+}
 function render(){
   const list=getVisiblePosts();
   const titles={home:"Your home feed",popular:"Popular posts",new:"New posts",videos:"Videos",shorts:"Shorts"};
   $("#feedTitle").textContent=selectedCommunity==="all"?(titles[feedMode]||"Your home feed"):"lemon/"+community(selectedCommunity).name;
   $("#feed").innerHTML=list.length?list.map(p=>{
     const c=community(p.community_id),vote=p.myVote||0;
-    const media=p.media_url&&/^https:\/\//i.test(p.media_url)
-      ?'<video class="media-player '+(p.post_type==="short"?"short-player":"")+'" controls playsinline preload="metadata" src="'+escapeHTML(p.media_url)+'"></video>'
-      :"";
+    const media=renderPostMedia(p);
     return '<article class="panel post" data-post="'+p.id+'"><div class="postmeta"><span>'+c.icon+'</span><span class="postcommunity">lemon/'+escapeHTML(c.name)+'</span><span class="dotsep">•</span><span>Posted by u/'+escapeHTML(p.author)+'</span><span class="dotsep">•</span><span>'+timeAgo(p.created_at)+'</span></div><h2>'+escapeHTML(p.title)+'</h2>'+media+'<div class="postbody">'+escapeHTML(p.body||"")+'</div><div class="postactions"><div class="vote"><button data-vote="1" class="'+(vote===1?"selected":"")+'" aria-label="Upvote">▲</button><strong>'+p.score+'</strong><button data-vote="-1" class="'+(vote===-1?"selected":"")+'" aria-label="Downvote">▼</button></div><button class="action" data-comments>▤ '+p.comments.length+' comments</button><button class="action" data-share>↗ Share</button></div><div class="comments" hidden><div class="comment-list">'+p.comments.map(cm=>'<div class="comment"><strong>u/'+escapeHTML(cm.author)+'</strong><p>'+escapeHTML(cm.body)+'</p></div>').join("")+'</div><form class="comment-form"><input name="comment" maxlength="800" placeholder="'+(currentUser?"Add a comment...":"Sign in to comment")+'" required aria-label="Add a comment"><button class="btn small">Reply</button></form></div></article>';
   }).join(""):'<div class="panel empty"><b>No posts found</b>'+(feedMode==="videos"||feedMode==="shorts"?"Be the first to share one!":"Try another search or be the first to post in this community.")+'</div>';
 }

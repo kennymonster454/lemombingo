@@ -4,14 +4,19 @@ LemonBingo is a Reddit-style community website connected to Supabase.
 
 ## Features
 
-- Shared accounts with email and password
+- Username-and-password account screens
 - Public profiles with unique usernames
 - Shared communities, posts, comments, and votes
+- Text posts, video posts, and vertical Shorts
 - Live updates across open browsers
-- Home, popular, and new feeds
+- Home, popular, new, videos, and shorts feeds
 - Hot, new, and top sorting
 - Search posts and communities
 - Responsive desktop and mobile layout
+
+## Video and Shorts
+
+Members can create a Video or Short post by providing a direct HTTPS video URL. The player supports browser-playable video formats such as MP4 and WebM. Direct file uploads are not enabled yet.
 
 ## Deploy
 
@@ -25,14 +30,19 @@ Supabase stores the app's data in these tables:
 
 - `profiles`
 - `communities`
-- `posts`
+- `posts` (including `post_type` and `media_url`)
 - `comments`
 - `votes`
 
 RLS is enabled on every table. Visitors can read public community content; signed-in users can create content and can edit or delete only their own rows. A user can have one vote per post.
 
+## Auth setup
+
+The account form asks for a username and password. Supabase Auth still handles the secure password/session work behind the scenes using a non-deliverable internal email alias derived from the username. In the Supabase Dashboard, turn off **Confirm email** under **Authentication → Sign In / Providers → Email** so account creation does not require email verification.
+
+Existing accounts that were created with real email addresses can still sign in by entering that email in the username field until they are migrated.
+
 ## Notes
 
-- New accounts may need to confirm their email before signing in, depending on the Supabase Auth settings.
 - The initial communities are seeded in the database.
-- This is an early community-site build. Moderation, reporting, image uploads, and password-reset UI are not included yet.
+- This is an early community-site build. Video file uploads, moderation, reporting, image uploads, and password-reset UI are not included yet.

@@ -455,7 +455,8 @@ $("#authForm").addEventListener("submit",async e=>{
 });
 async function start(){
   try{
-    const {data:{session}}=await db.auth.getSession();
+    let {data:{session}}=await db.auth.getSession();
+    if(session){const refreshed=await db.auth.refreshSession();if(!refreshed.error&&refreshed.data.session)session=refreshed.data.session;}
     currentUser=session?.user||null;
     if(currentUser){try{profile=await ensureProfile(currentUser)}catch(e){console.error("Profile setup:",e)}}
     setAuthUI();await refreshAll();connectRealtime();

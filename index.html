@@ -414,44 +414,27 @@ $("#postForm").addEventListener("submit",async e=>{
   }
   $("#postForm").reset();$("#officialPostField").hidden=!isOfficialAccount();$("#mediaUrlField").hidden=true;$("#pollOptionsField").hidden=true;$("#mediaUrl").required=false;$("#postBody").required=true;closeModal();activeFeature="";specialPostIds=null;selectedCommunity="all";feedMode="home";searchTerm="";$("#search").value="";await loadPosts();
 });
-function authEmailForUsername(username){return username.toLowerCase()+"@users.lemonbingo.com"}
 $("#authForm").addEventListener("submit",async e=>{
   e.preventDefault();const message=$("#authMessage");showMessage(message,"Working...");
   const username=$("#authUsername").value.trim().toLowerCase(),password=$("#authPassword").value;
-  const validUsername=/^[a-z0-9_]{3,24}$/.test(username);
-  if(authMode==="signup"&&!validUsername){showMessage(message,"Username must be 3–24 characters: letters, numbers, underscores.",true);return}
-  if(authMode==="signin"&&!validUsername&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(username)){showMessage(message,"Enter your username.",true);return}
-  const email=authMode==="signin"&&username.includes("@")?username:authEmailForUsername(username);
+  if(!/^[a-z0-9_]{3,24}$/.test(username)){showMessage(message,"Username must be 3–24 characters: letters, numbers, underscores.",true);return}
   if(authMode==="signup"){
-    const {data,error}=await db.auth.signUp({email,password,options:{data:{username}}});
-    if(error){showMessage(message,error.message,true);return}
-    if(!data.session){
-      showMessage(message,"Email confirmation is still enabled in Supabase. Turn off Confirm email in Authentication → Sign In / Providers → Email to finish username-only signup.",true);
-      return;
-    }
-    currentUser=data.user;try{profile=await ensureProfile(currentUser)}catch(err){showMessage(message,err.message,true);return}
-    setAuthUI();closeAuth();await refreshAll();
-  }else{
-    if(username.includes("@")){
-      const result=await db.auth.signInWithPassword({email,password});
-      if(result.error){showMessage(message,"Invalid email or password.",true);return}
-      currentUser=result.data.user;
-    }else{
-      const {data,error}=await db.functions.invoke("username-login",{body:{username,password}});
-      if(error||!data?.access_token||!data?.refresh_token){
-        showMessage(message,data?.error||"Invalid username or password.",true);
-        return;
-      }
-      const {data:sessionData,error:sessionError}=await db.auth.setSession({
-        access_token:data.access_token,
-        refresh_token:data.refresh_token
-      });
-      if(sessionError){showMessage(message,"Could not start your session. Please try again.",true);return}
-      currentUser=sessionData.user;
-    }
-    try{profile=await ensureProfile(currentUser)}catch(err){showMessage(message,err.message,true);return}
-    setAuthUI();closeAuth();await refreshAll();
+    const {data,error}=await db.functions.invoke("username-signup",{body:{username,password}});
+    if(error||!data?.created){showMessage(message,data?.error||"Could not create your account. Please try again.",true);return}
   }
+  const {data,error}=await db.functions.invoke("username-login",{body:{username,password}});
+  if(error||!data?.access_token||!data?.refresh_token){
+    showMessage(message,data?.error||"Invalid username or password.",true);
+    return;
+  }
+  const {data:sessionData,error:sessionError}=await db.auth.setSession({
+    access_token:data.access_token,
+    refresh_token:data.refresh_token
+  });
+  if(sessionError){showMessage(message,"Could not start your session. Please try again.",true);return}
+  currentUser=sessionData.user;
+  try{profile=await ensureProfile(currentUser)}catch(err){showMessage(message,err.message,true);return}
+  setAuthUI();closeAuth();await refreshAll();
 });
 async function start(){
   try{

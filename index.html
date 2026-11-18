@@ -267,7 +267,7 @@ async function openFeature(name){
     }
     if(name==="profile"){
       const {data,error}=await db.from("profiles").select("username,display_name,bio,website").eq("id",currentUser.id).single();if(error)throw error;
-      $("#feed").innerHTML='<section class="panel feature-card"><h2>My profile · '+escapeHTML(displayUsername(data.username,currentUser.id))+'</h2><form id="profileEdit"><label>Display name<input name="display_name" maxlength="50" value="'+escapeHTML(data.display_name||"")+'"></label><label>Bio<textarea name="bio" maxlength="500">'+escapeHTML(data.bio||"")+'</textarea></label><label>Website<input name="website" type="url" value="'+escapeHTML(data.website||"")+'" placeholder="https://..."></label><button class="btn">Save profile</button></form></section>';
+      $("#feed").innerHTML='<section class="panel feature-card"><h2>My profile · '+escapeHTML(data.username)+'</h2><form id="profileEdit"><label>Display name<input name="display_name" maxlength="50" value="'+escapeHTML(data.display_name||"")+'"></label><label>Bio<textarea name="bio" maxlength="500">'+escapeHTML(data.bio||"")+'</textarea></label><label>Website<input name="website" type="url" value="'+escapeHTML(data.website||"")+'" placeholder="https://..."></label><button class="btn">Save profile</button></form></section>';
       $("#profileEdit").onsubmit=async e=>{e.preventDefault();const fd=new FormData(e.target);const {error}=await db.from("profiles").update({display_name:fd.get("display_name"),bio:fd.get("bio"),website:fd.get("website")}).eq("id",currentUser.id);if(error)showError(error);else alert("Profile updated.")};return;
     }
     if(name==="messages"){

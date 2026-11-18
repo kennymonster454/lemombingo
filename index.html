@@ -421,7 +421,7 @@ $("#postForm").addEventListener("submit",async e=>{
   }
   $("#postForm").reset();$("#mediaUrlField").hidden=true;$("#pollOptionsField").hidden=true;$("#mediaUrl").required=false;$("#postBody").required=true;closeModal();activeFeature="";specialPostIds=null;selectedCommunity="all";feedMode="home";searchTerm="";$("#search").value="";await loadPosts();
 });
-function authEmailForUsername(username){return username.toLowerCase()+"@users.lemonbingo.invalid"}
+function authEmailForUsername(username){return username.toLowerCase()+"@users.lemonbingo.com"}
 $("#authForm").addEventListener("submit",async e=>{
   e.preventDefault();const message=$("#authMessage");showMessage(message,"Working...");
   const username=$("#authUsername").value.trim().toLowerCase(),password=$("#authPassword").value;

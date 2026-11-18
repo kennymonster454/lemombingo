@@ -439,9 +439,24 @@ $("#authForm").addEventListener("submit",async e=>{
     currentUser=data.user;try{profile=await ensureProfile(currentUser)}catch(err){showMessage(message,err.message,true);return}
     setAuthUI();closeAuth();await refreshAll();
   }else{
-    const result=await db.auth.signInWithPassword({email,password});
-    if(result.error){showMessage(message,result.error.message,true);return}
-    currentUser=result.data.user;try{profile=await ensureProfile(currentUser)}catch(err){showMessage(message,err.message,true);return}
+    if(username.includes("@")){
+      const result=await db.auth.signInWithPassword({email,password});
+      if(result.error){showMessage(message,"Invalid email or password.",true);return}
+      currentUser=result.data.user;
+    }else{
+      const {data,error}=await db.functions.invoke("username-login",{body:{username,password}});
+      if(error||!data?.access_token||!data?.refresh_token){
+        showMessage(message,data?.error||"Invalid username or password.",true);
+        return;
+      }
+      const {data:sessionData,error:sessionError}=await db.auth.setSession({
+        access_token:data.access_token,
+        refresh_token:data.refresh_token
+      });
+      if(sessionError){showMessage(message,"Could not start your session. Please try again.",true);return}
+      currentUser=sessionData.user;
+    }
+    try{profile=await ensureProfile(currentUser)}catch(err){showMessage(message,err.message,true);return}
     setAuthUI();closeAuth();await refreshAll();
   }
 });

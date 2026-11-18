@@ -36,9 +36,21 @@ body.undercover-mode,body.undercover-mode *{cursor:url("data:image/svg+xml,%3Csv
 body.undercover-mode #authStatus{color:#4c8b63!important;font-weight:800}
 @media(max-width:1100px){.layout{grid-template-columns:190px minmax(0,1fr)}.rightcol{display:none}}
 @media(max-width:700px){.topbar{height:60px;padding:0 13px;gap:12px}.brand{font-size:19px}.logo{height:33px;width:33px}.search{max-width:none}.top-actions .btn{display:none}.layout{display:block;margin:16px auto;padding:0 12px}.sidebar{display:flex;position:static;overflow-x:auto;gap:4px;padding:8px;margin-bottom:12px}.sidebar .navitem{flex:0 0 auto;width:auto;padding:8px 10px}.sidebar .sideheading,.sidebar #communityList,.sidebar .notice{display:none}.feed-head{align-items:flex-start;gap:10px;flex-direction:column}.post{padding:15px}.post h2{font-size:17px}.sortbar{width:100%}.sortbar button{flex:1}.composer{padding:11px}}
+
+/* LemonBingo first-load splash screen */
+#loadingScreen{position:fixed;inset:0;z-index:1000;background:#ffff52;display:flex;align-items:flex-start;justify-content:center;overflow:hidden;opacity:1;visibility:visible;transition:opacity .45s ease,visibility .45s ease}
+#loadingScreen.is-hidden{opacity:0;visibility:hidden;pointer-events:none}
+.loading-title{margin:clamp(70px,20vh,150px) 18px 0;color:#f4e600;font-family:"Comic Sans MS","Trebuchet MS",cursive;font-size:clamp(54px,11vw,112px);font-weight:900;line-height:1.18;letter-spacing:2px;text-align:center;text-transform:lowercase;text-shadow:0 1px 0 #f0df00;transform:rotate(-2deg)}
+.loading-title span{display:block}
+.loading-lemon{position:absolute;right:clamp(28px,10vw,110px);bottom:clamp(48px,13vh,100px);width:62px;height:48px;border-radius:55% 48% 52% 48%;background:#f4df00;transform:rotate(-24deg);animation:lemonSpin 1s ease-in-out infinite}
+.loading-lemon:before{content:"";position:absolute;width:23px;height:15px;background:#20b34b;border-radius:90% 10% 90% 10%;right:0;top:-7px;transform:rotate(-12deg)}
+@keyframes lemonSpin{0%,100%{transform:rotate(-24deg) translateY(0)}50%{transform:rotate(24deg) translateY(-7px)}}
+@media(prefers-reduced-motion:reduce){.loading-lemon{animation:none}#loadingScreen{transition:none}}
+
 </style>
 </head>
 <body>
+<div id="loadingScreen" role="status" aria-label="Loading LemonBingo"><div class="loading-title"><span>lemon</span><span>bingo</span></div><div class="loading-lemon" aria-hidden="true"></div></div>
 <header class="topbar">
 <a class="brand" href="#" aria-label="LemonBingo home"><span class="logo">🍋</span><span>LemonBingo</span></a>
 <div class="search"><span>⌕</span><input id="search" type="search" placeholder="Search posts and communities..." aria-label="Search"></div>
@@ -467,6 +479,10 @@ async function start(){
     if(currentUser){try{profile=await ensureProfile(currentUser)}catch(e){console.error("Profile setup:",e)}}
     setAuthUI();await refreshAll();connectRealtime();
   }catch(e){$("#feed").innerHTML='<div class="panel empty"><b>Could not connect</b>'+escapeHTML(e.message)+'</div>'}
+  finally{
+    const splash=$("#loadingScreen");
+    if(splash){splash.classList.add("is-hidden");setTimeout(()=>splash.remove(),500)}
+  }
 }
 db.auth.onAuthStateChange((_event,session)=>{
   currentUser=session?.user||null;

@@ -28,7 +28,12 @@ button,input,textarea,select{font:inherit}button{cursor:pointer}
 .media-note{font-size:12px;color:var(--muted);margin-top:-5px}
 .empty{padding:42px 20px;text-align:center;color:var(--muted)}.empty b{display:block;color:var(--ink);font-size:18px;margin-bottom:5px}
 .modal-backdrop{position:fixed;inset:0;background:#17181080;z-index:30;display:none;align-items:center;justify-content:center;padding:18px}.modal-backdrop.open{display:flex}.modal{width:min(560px,100%);background:white;border-radius:18px;padding:22px;box-shadow:0 20px 70px #0003}.modalhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}.modalhead h2{margin:0;font-size:21px}.close{border:0;background:#f1f1ec;border-radius:9px;width:34px;height:34px;font-size:20px}.field{display:grid;gap:6px;margin-bottom:13px}.field label{font-size:12px;font-weight:800;color:#55564e}.field input,.field textarea,.field select{width:100%;border:1px solid var(--line);border-radius:10px;padding:11px 12px;outline:none;background:white}.field textarea{min-height:125px;resize:vertical}.modalfoot{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
-footer{max-width:1320px;margin:0 auto 30px;padding:0 22px;color:#92938a;font-size:11px}
+footer{max-width:1320px;margin:0 auto 76px;padding:0 22px;color:#92938a;font-size:11px}
+body.undercover-mode,body.undercover-mode *{cursor:url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2732%27 height=%2732%27 viewBox=%270 0 32 32%27%3E%3Cellipse cx=%2715%27 cy=%2718%27 rx=%2711%27 ry=%277%27 fill=%27%23f5d84e%27 stroke=%27%23b99a1c%27 stroke-width=%271.5%27/%3E%3Cpath d=%27M15 10 Q18 3 25 6 Q22 12 15 12%27 fill=%27%234c8b63%27/%3E%3C/svg%3E") 16 16,auto!important}
+.lemon-secret-dock{position:fixed;z-index:25;left:50%;bottom:10px;transform:translateX(-50%);display:flex;align-items:center;gap:5px;padding:7px 10px;background:#fffefaed;border:1px solid #e8e0b5;border-radius:18px;box-shadow:0 5px 22px #292a1b20;backdrop-filter:blur(8px)}
+.secret-lemon{border:0;background:transparent;padding:2px;font-size:21px;line-height:1;filter:saturate(.9);border-radius:8px}.secret-lemon:hover{background:#fff4b5;transform:translateY(-2px)}.secret-lemon.used{background:#fff0a0;box-shadow:inset 0 0 0 1px #e6c52d}
+.secret-status{font-size:10px;color:#77786f;white-space:nowrap;margin-left:4px}
+body.undercover-mode #authStatus{color:#4c8b63!important;font-weight:800}
 @media(max-width:1100px){.layout{grid-template-columns:190px minmax(0,1fr)}.rightcol{display:none}}
 @media(max-width:700px){.topbar{height:60px;padding:0 13px;gap:12px}.brand{font-size:19px}.logo{height:33px;width:33px}.search{max-width:none}.top-actions .btn{display:none}.layout{display:block;margin:16px auto;padding:0 12px}.sidebar{display:flex;position:static;overflow-x:auto;gap:4px;padding:8px;margin-bottom:12px}.sidebar .navitem{flex:0 0 auto;width:auto;padding:8px 10px}.sidebar .sideheading,.sidebar #communityList,.sidebar .notice{display:none}.feed-head{align-items:flex-start;gap:10px;flex-direction:column}.post{padding:15px}.post h2{font-size:17px}.sortbar{width:100%}.sortbar button{flex:1}.composer{padding:11px}}
 </style>
@@ -70,6 +75,7 @@ footer{max-width:1320px;margin:0 auto 30px;padding:0 22px;color:#92938a;font-siz
 </aside>
 </div>
 <footer>LemonBingo · Be kind, keep it curious.</footer>
+<div class="lemon-secret-dock" id="lemonSecretDock" aria-label="Secret LemonBingo easter egg"><button class="secret-lemon" type="button" data-secret-lemon="1" aria-label="Secret lemon 1">🍋</button><button class="secret-lemon" type="button" data-secret-lemon="2" aria-label="Secret lemon 2">🍋</button><button class="secret-lemon" type="button" data-secret-lemon="3" aria-label="Secret lemon 3">🍋</button><button class="secret-lemon" type="button" data-secret-lemon="4" aria-label="Secret lemon 4">🍋</button><button class="secret-lemon" type="button" data-secret-lemon="5" aria-label="Secret lemon 5">🍋</button><button class="secret-lemon" type="button" data-secret-lemon="6" aria-label="Secret lemon 6">🍋</button><span class="secret-status" id="secretStatus" aria-live="polite"></span></div>
 <div class="modal-backdrop" id="authModal">
 <div class="modal" role="dialog" aria-modal="true" aria-labelledby="authTitle">
 <div class="modalhead"><h2 id="authTitle">Sign in to LemonBingo</h2><button class="close" id="closeAuth" aria-label="Close">×</button></div>
@@ -114,6 +120,8 @@ let authMode = "signin";
 let liveChannel = null;
 let specialPostIds = null;
 let activeFeature = "";
+let undercoverMode = localStorage.getItem("lemonbingo_undercover") === "on";
+const secretLemonsPressed = new Set();
 
 const $ = s => document.querySelector(s);
 const escapeHTML = value => String(value ?? "").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -121,8 +129,10 @@ const usernameFrom = user => user?.username || user?.profiles?.username || "memb
 function community(id){return communities.find(c=>c.id===id)||{id:"",name:"general",icon:"💬",description:"A little bit of everything"}}
 function timeAgo(value){const t=new Date(value).getTime();const m=Math.max(1,Math.floor((Date.now()-t)/60000));if(m<60)return m+"m ago";const h=Math.floor(m/60);if(h<24)return h+"h ago";return Math.floor(h/24)+"d ago"}
 function showMessage(target,message,isError=false){target.textContent=message;target.style.color=isError?"#b33b32":"#4c8b63"}
+function displayUsername(username,userId){return undercoverMode&&currentUser&&userId===currentUser.id?"LemonBingo Official":username}
 function setAuthUI(){
-  $("#authStatus").textContent = profile ? "u/"+profile.username : "";
+  document.body.classList.toggle("undercover-mode",undercoverMode);
+  $("#authStatus").textContent = undercoverMode&&currentUser ? "🍋 LemonBingo Official" : profile ? "u/"+profile.username : "";
   $("#authButton").hidden = !!currentUser;
   $("#signOutButton").hidden = !currentUser;
   $("#authButton").textContent = "Sign in";
@@ -188,7 +198,7 @@ async function loadPosts(){
     return {...p,author:p.profiles?.username||"member",community:p.communities?.name||"general",
       score:pv.reduce((n,v)=>n+v.value,0),
       myVote:pv.find(v=>v.user_id===currentUser?.id)?.value||0,
-      comments:comments.filter(c=>c.post_id===p.id).map(c=>({id:c.id,parent_id:c.parent_id||null,author:c.profiles?.username||"member",body:c.body,created_at:c.created_at})),
+      comments:comments.filter(c=>c.post_id===p.id).map(c=>({id:c.id,user_id:c.user_id,parent_id:c.parent_id||null,author:c.profiles?.username||"member",body:c.body,created_at:c.created_at})),
       poll:polls.find(x=>x.post_id===p.id)||null};
   });
   render();
@@ -227,7 +237,7 @@ function renderCommentTree(comments){
   for(const comment of comments){const key=comment.parent_id||"";if(!children.has(key))children.set(key,[]);children.get(key).push(comment);}
   const render=(parentId="",depth=0)=>{
     if(depth>12)return "";
-    return (children.get(parentId)||[]).map(cm=>'<div class="comment"><div class="comment-heading"><strong>u/'+escapeHTML(cm.author)+'</strong><button class="reply-toggle" type="button" data-reply="'+cm.id+'">Reply</button></div><p>'+escapeHTML(cm.body)+'</p><form class="reply-form" data-parent-id="'+cm.id+'" hidden><input name="comment" maxlength="800" placeholder="Write a reply..." required aria-label="Write a reply"><button class="btn small">Reply</button></form><div class="comment-children">'+render(cm.id,depth+1)+'</div></div>').join("");
+    return (children.get(parentId)||[]).map(cm=>'<div class="comment"><div class="comment-heading"><strong>'+escapeHTML(displayUsername(cm.author,cm.user_id))+'</strong><button class="reply-toggle" type="button" data-reply="'+cm.id+'">Reply</button></div><p>'+escapeHTML(cm.body)+'</p><form class="reply-form" data-parent-id="'+cm.id+'" hidden><input name="comment" maxlength="800" placeholder="Write a reply..." required aria-label="Write a reply"><button class="btn small">Reply</button></form><div class="comment-children">'+render(cm.id,depth+1)+'</div></div>').join("");
   };
   return render();
 }
@@ -251,7 +261,7 @@ async function openFeature(name){
     }
     if(name==="profile"){
       const {data,error}=await db.from("profiles").select("username,display_name,bio,website").eq("id",currentUser.id).single();if(error)throw error;
-      $("#feed").innerHTML='<section class="panel feature-card"><h2>My profile · u/'+escapeHTML(data.username)+'</h2><form id="profileEdit"><label>Display name<input name="display_name" maxlength="50" value="'+escapeHTML(data.display_name||"")+'"></label><label>Bio<textarea name="bio" maxlength="500">'+escapeHTML(data.bio||"")+'</textarea></label><label>Website<input name="website" type="url" value="'+escapeHTML(data.website||"")+'" placeholder="https://..."></label><button class="btn">Save profile</button></form></section>';
+      $("#feed").innerHTML='<section class="panel feature-card"><h2>My profile · '+escapeHTML(displayUsername(data.username,currentUser.id))+'</h2><form id="profileEdit"><label>Display name<input name="display_name" maxlength="50" value="'+escapeHTML(data.display_name||"")+'"></label><label>Bio<textarea name="bio" maxlength="500">'+escapeHTML(data.bio||"")+'</textarea></label><label>Website<input name="website" type="url" value="'+escapeHTML(data.website||"")+'" placeholder="https://..."></label><button class="btn">Save profile</button></form></section>';
       $("#profileEdit").onsubmit=async e=>{e.preventDefault();const fd=new FormData(e.target);const {error}=await db.from("profiles").update({display_name:fd.get("display_name"),bio:fd.get("bio"),website:fd.get("website")}).eq("id",currentUser.id);if(error)showError(error);else alert("Profile updated.")};return;
     }
     if(name==="messages"){
@@ -278,7 +288,7 @@ function render(){
     const c=community(p.community_id),vote=p.myVote||0;
     const media=renderPostMedia(p);
     const pollHtml=p.poll?'<div class="poll-options">'+(p.poll.poll_options||[]).sort((a,b)=>a.position-b.position).map(o=>{const count=(p.poll.poll_votes||[]).filter(v=>v.option_id===o.id).length;return '<button class="poll-option" data-poll-option="'+o.id+'">'+escapeHTML(o.label)+' <span>'+count+' votes</span></button>'}).join("")+'</div>':"";
-    return '<article class="panel post" data-post="'+p.id+'"><div class="postmeta"><span>'+c.icon+'</span><span class="postcommunity">lemon/'+escapeHTML(c.name)+'</span><span class="dotsep">•</span><span>Posted by u/'+escapeHTML(p.author)+'</span><span class="dotsep">•</span><span>'+timeAgo(p.created_at)+'</span></div><h2>'+escapeHTML(p.title)+'</h2>'+media+'<div class="postbody">'+escapeHTML(p.body||"")+'</div>'+pollHtml+'<div class="postactions"><div class="vote"><button data-vote="1" class="'+(vote===1?"selected":"")+'" aria-label="Upvote">▲</button><strong>'+p.score+'</strong><button data-vote="-1" class="'+(vote===-1?"selected":"")+'" aria-label="Downvote">▼</button></div><button class="action" data-comments>▤ '+p.comments.length+' comments</button><button class="action" data-save>▣ Save</button><button class="action" data-follow>♡ Follow</button><button class="action" data-block>⊘ Block</button><button class="action" data-report>⚑ Report</button><button class="action" data-edit>✎ Edit</button><button class="action" data-share>↗ Share</button></div><div class="comments" hidden><div class="comment-list">'+renderCommentTree(p.comments)+'</div><form class="comment-form"><input name="comment" maxlength="800" placeholder="'+(currentUser?"Add a comment...":"Sign in to comment")+'" required aria-label="Add a comment"><button class="btn small">Reply</button></form></div></article>';
+    return '<article class="panel post" data-post="'+p.id+'"><div class="postmeta"><span>'+c.icon+'</span><span class="postcommunity">lemon/'+escapeHTML(c.name)+'</span><span class="dotsep">•</span><span>Posted by '+escapeHTML(displayUsername(p.author,p.user_id))+'</span><span class="dotsep">•</span><span>'+timeAgo(p.created_at)+'</span></div><h2>'+escapeHTML(p.title)+'</h2>'+media+'<div class="postbody">'+escapeHTML(p.body||"")+'</div>'+pollHtml+'<div class="postactions"><div class="vote"><button data-vote="1" class="'+(vote===1?"selected":"")+'" aria-label="Upvote">▲</button><strong>'+p.score+'</strong><button data-vote="-1" class="'+(vote===-1?"selected":"")+'" aria-label="Downvote">▼</button></div><button class="action" data-comments>▤ '+p.comments.length+' comments</button><button class="action" data-save>▣ Save</button><button class="action" data-follow>♡ Follow</button><button class="action" data-block>⊘ Block</button><button class="action" data-report>⚑ Report</button><button class="action" data-edit>✎ Edit</button><button class="action" data-share>↗ Share</button></div><div class="comments" hidden><div class="comment-list">'+renderCommentTree(p.comments)+'</div><form class="comment-form"><input name="comment" maxlength="800" placeholder="'+(currentUser?"Add a comment...":"Sign in to comment")+'" required aria-label="Add a comment"><button class="btn small">Reply</button></form></div></article>';
   }).join(""):'<div class="panel empty"><b>No posts found</b>'+(feedMode==="videos"||feedMode==="shorts"?"Be the first to share one!":"Try another search or be the first to post in this community.")+'</div>';
 }
 function openModal(){if(!currentUser){openAuth("signin");return}$("#modal").classList.add("open");setTimeout(()=>$("#postTitle").focus(),50)}
@@ -321,6 +331,21 @@ $("#search").addEventListener("input",e=>{searchTerm=e.target.value.trim().toLow
 document.querySelectorAll("[data-sort]").forEach(b=>b.addEventListener("click",()=>{sortMode=b.dataset.sort;document.querySelectorAll("[data-sort]").forEach(x=>x.classList.toggle("active",x===b));render()}));
 document.querySelectorAll("[data-feed]").forEach(b=>b.addEventListener("click",()=>{activeFeature="";specialPostIds=null;feedMode=b.dataset.feed;selectedCommunity="all";document.querySelectorAll("[data-feed]").forEach(x=>x.classList.toggle("active",x===b));document.querySelectorAll("[data-feature]").forEach(x=>x.classList.remove("active"));render()}));
 featureCss();
+if(undercoverMode)document.body.classList.add("undercover-mode");
+$("#lemonSecretDock").addEventListener("click",e=>{
+  const lemon=e.target.closest("[data-secret-lemon]");if(!lemon)return;
+  secretLemonsPressed.add(lemon.dataset.secretLemon);lemon.classList.add("used");
+  $("#secretStatus").textContent=secretLemonsPressed.size+"/6";
+  if(secretLemonsPressed.size===6){
+    undercoverMode=!undercoverMode;
+    localStorage.setItem("lemonbingo_undercover",undercoverMode?"on":"off");
+    secretLemonsPressed.clear();
+    document.querySelectorAll("[data-secret-lemon]").forEach(x=>x.classList.remove("used"));
+    $("#secretStatus").textContent=undercoverMode?"UNDERCOVER ON":"UNDERCOVER OFF";
+    setAuthUI();render();
+    if(activeFeature==="profile"&&currentUser)openFeature("profile");
+  }
+});
 document.addEventListener("click",async e=>{
   const feature=e.target.closest("[data-feature]");if(feature){openFeature(feature.dataset.feature);return}
   const c=e.target.closest("[data-community]");if(c){activeFeature="";specialPostIds=null;selectCommunity(c.dataset.community);return}

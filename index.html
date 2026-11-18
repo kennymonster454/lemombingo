@@ -27,13 +27,8 @@ button,input,textarea,select{font:inherit}button{cursor:pointer}
 .short-player{width:min(100%,360px);max-height:640px;aspect-ratio:9/16;margin:14px auto}
 .media-note{font-size:12px;color:var(--muted);margin-top:-5px}
 .empty{padding:42px 20px;text-align:center;color:var(--muted)}.empty b{display:block;color:var(--ink);font-size:18px;margin-bottom:5px}
-.modal-backdrop{position:fixed;inset:0;background:#17181080;z-index:30;display:none;align-items:center;justify-content:center;padding:18px}.modal-backdrop.open{display:flex}.modal{width:min(560px,100%);background:white;border-radius:18px;padding:22px;box-shadow:0 20px 70px #0003}.modalhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}.modalhead h2{margin:0;font-size:21px}.close{border:0;background:#f1f1ec;border-radius:9px;width:34px;height:34px;font-size:20px}.field{display:grid;gap:6px;margin-bottom:13px}.field label{font-size:12px;font-weight:800;color:#55564e}.field input,.field textarea,.field select{width:100%;border:1px solid var(--line);border-radius:10px;padding:11px 12px;outline:none;background:white}.field textarea{min-height:125px;resize:vertical}.modalfoot{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
+.modal-backdrop{position:fixed;inset:0;background:#17181080;z-index:30;display:none;align-items:center;justify-content:center;padding:18px}.modal-backdrop.open{display:flex}.modal{width:min(560px,100%);background:white;border-radius:18px;padding:22px;box-shadow:0 20px 70px #0003}.modalhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}.modalhead h2{margin:0;font-size:21px}.close{border:0;background:#f1f1ec;border-radius:9px;width:34px;height:34px;font-size:20px}.field{display:grid;gap:6px;margin-bottom:13px}.field label{font-size:12px;font-weight:800;color:#55564e}.field input,.field textarea,.field select{width:100%;border:1px solid var(--line);border-radius:10px;padding:11px 12px;outline:none;background:white}.field textarea{min-height:125px;resize:vertical}.modalfoot{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}.official-toggle{display:flex!important;align-items:center;gap:9px!important}.official-toggle input{width:auto!important}.official-badge{display:inline-block;margin-left:5px;padding:2px 6px;border-radius:6px;background:#fff4b5;color:#705b00;font-size:10px;font-weight:850;letter-spacing:.3px;text-transform:uppercase}
 footer{max-width:1320px;margin:0 auto 76px;padding:0 22px;color:#92938a;font-size:11px}
-body.undercover-mode,body.undercover-mode *{cursor:url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2732%27 height=%2732%27 viewBox=%270 0 32 32%27%3E%3Cellipse cx=%2715%27 cy=%2718%27 rx=%2711%27 ry=%277%27 fill=%27%23f5d84e%27 stroke=%27%23b99a1c%27 stroke-width=%271.5%27/%3E%3Cpath d=%27M15 10 Q18 3 25 6 Q22 12 15 12%27 fill=%27%234c8b63%27/%3E%3C/svg%3E") 16 16,auto!important}
-.lemon-secret-dock{position:fixed;z-index:25;left:50%;bottom:10px;transform:translateX(-50%);display:flex;align-items:center;gap:5px;padding:7px 10px;background:#fffefaed;border:1px solid #e8e0b5;border-radius:18px;box-shadow:0 5px 22px #292a1b20;backdrop-filter:blur(8px)}
-.secret-lemon{border:0;background:transparent;padding:2px;font-size:21px;line-height:1;filter:saturate(.9);border-radius:8px}.secret-lemon:hover{background:#fff4b5;transform:translateY(-2px)}.secret-lemon.used{background:#fff0a0;box-shadow:inset 0 0 0 1px #e6c52d}
-.secret-status{font-size:10px;color:#77786f;white-space:nowrap;margin-left:4px}
-body.undercover-mode #authStatus{color:#4c8b63!important;font-weight:800}
 @media(max-width:1100px){.layout{grid-template-columns:190px minmax(0,1fr)}.rightcol{display:none}}
 @media(max-width:700px){.topbar{height:60px;padding:0 13px;gap:12px}.brand{font-size:19px}.logo{height:33px;width:33px}.search{max-width:none}.top-actions .btn{display:none}.layout{display:block;margin:16px auto;padding:0 12px}.sidebar{display:flex;position:static;overflow-x:auto;gap:4px;padding:8px;margin-bottom:12px}.sidebar .navitem{flex:0 0 auto;width:auto;padding:8px 10px}.sidebar .sideheading,.sidebar #communityList,.sidebar .notice{display:none}.feed-head{align-items:flex-start;gap:10px;flex-direction:column}.post{padding:15px}.post h2{font-size:17px}.sortbar{width:100%}.sortbar button{flex:1}.composer{padding:11px}}
 
@@ -87,7 +82,6 @@ body.undercover-mode #authStatus{color:#4c8b63!important;font-weight:800}
 </aside>
 </div>
 <footer>LemonBingo · Be kind, keep it curious.</footer>
-<div class="lemon-secret-dock" id="lemonSecretDock" aria-label="Secret LemonBingo easter egg"><button class="secret-lemon" type="button" data-secret-lemon="1" aria-label="Secret lemon 1">🍋</button><button class="secret-lemon" type="button" data-secret-lemon="2" aria-label="Secret lemon 2">🍋</button><button class="secret-lemon" type="button" data-secret-lemon="3" aria-label="Secret lemon 3">🍋</button><button class="secret-lemon" type="button" data-secret-lemon="4" aria-label="Secret lemon 4">🍋</button><button class="secret-lemon" type="button" data-secret-lemon="5" aria-label="Secret lemon 5">🍋</button><button class="secret-lemon" type="button" data-secret-lemon="6" aria-label="Secret lemon 6">🍋</button><span class="secret-status" id="secretStatus" aria-live="polite"></span></div>
 <div class="modal-backdrop" id="authModal">
 <div class="modal" role="dialog" aria-modal="true" aria-labelledby="authTitle">
 <div class="modalhead"><h2 id="authTitle">Sign in to LemonBingo</h2><button class="close" id="closeAuth" aria-label="Close">×</button></div>
@@ -107,6 +101,7 @@ body.undercover-mode #authStatus{color:#4c8b63!important;font-weight:800}
 <div class="field"><label for="postCommunity">COMMUNITY</label><select id="postCommunity" required></select></div>
 <div class="field"><label for="postType">POST TYPE</label><select id="postType"><option value="text">Text post</option><option value="image">Image</option><option value="video">Video</option><option value="short">Short</option><option value="poll">Poll</option></select></div>
 <div class="field"><label for="postTitle">TITLE</label><input id="postTitle" maxlength="180" placeholder="Give your post a clear title" required></div>
+<div class="field" id="officialPostField" hidden><label class="official-toggle"><input id="postAsOfficial" type="checkbox"> Publish this post as LemonBingo Official</label></div>
 <div class="field" id="mediaUrlField" hidden><label for="mediaUrl">MEDIA URL (OPTIONAL)</label><input id="mediaUrl" type="url" inputmode="url" placeholder="https://..."><label for="mediaFile">OR UPLOAD A FILE</label><input id="mediaFile" type="file" accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm"><span class="media-note">Images and videos up to 50 MB.</span></div>
 <div class="field" id="pollOptionsField" hidden><label for="pollOptions">POLL OPTIONS</label><textarea id="pollOptions" maxlength="1200" placeholder="One option per line"></textarea><span class="media-note">Add 2–6 choices, one per line.</span></div>
 <div class="field"><label for="postBody">CAPTION / DESCRIPTION</label><textarea id="postBody" maxlength="5000" placeholder="Add a caption..."></textarea></div>
@@ -132,8 +127,6 @@ let authMode = "signin";
 let liveChannel = null;
 let specialPostIds = null;
 let activeFeature = "";
-let undercoverMode = localStorage.getItem("lemonbingo_undercover") === "on";
-const secretLemonsPressed = new Set();
 
 const $ = s => document.querySelector(s);
 const escapeHTML = value => String(value ?? "").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -141,10 +134,11 @@ const usernameFrom = user => user?.username || user?.profiles?.username || "memb
 function community(id){return communities.find(c=>c.id===id)||{id:"",name:"general",icon:"💬",description:"A little bit of everything"}}
 function timeAgo(value){const t=new Date(value).getTime();const m=Math.max(1,Math.floor((Date.now()-t)/60000));if(m<60)return m+"m ago";const h=Math.floor(m/60);if(h<24)return h+"h ago";return Math.floor(h/24)+"d ago"}
 function showMessage(target,message,isError=false){target.textContent=message;target.style.color=isError?"#b33b32":"#4c8b63"}
-function displayUsername(username,userId){return undercoverMode&&currentUser&&userId===currentUser.id?"LemonBingo Official":username}
+function isOfficialAccount(){return currentUser?.app_metadata?.lemon_official===true}
 function setAuthUI(){
-  document.body.classList.toggle("undercover-mode",undercoverMode);
-  $("#authStatus").textContent = undercoverMode&&currentUser ? "🍋 LemonBingo Official" : profile ? "u/"+profile.username : "";
+  $("#authStatus").textContent = profile ? "u/"+profile.username : "";
+  $("#officialPostField").hidden = !isOfficialAccount();
+  if(!isOfficialAccount()) $("#postAsOfficial").checked=false;
   $("#authButton").hidden = !!currentUser;
   $("#signOutButton").hidden = !currentUser;
   $("#authButton").textContent = "Sign in";
@@ -173,7 +167,7 @@ function renderCommunities(){
   $("#postCommunity").innerHTML=communities.map(c=>'<option value="'+c.id+'">lemon/'+escapeHTML(c.name)+'</option>').join("");
 }
 async function loadPosts(){
-  const {data:raw,error}=await db.from("posts").select("id,community_id,user_id,title,body,post_type,media_url,created_at,profiles(username),communities(name)").order("created_at",{ascending:false}).limit(100);
+  const {data:raw,error}=await db.from("posts").select("id,community_id,user_id,title,body,post_type,media_url,author_label,created_at,profiles(username),communities(name)").order("created_at",{ascending:false}).limit(100);
   if(error)throw error;
   const ids=(raw||[]).map(p=>p.id);
   let comments=[],votes=[],polls=[];
@@ -249,7 +243,7 @@ function renderCommentTree(comments){
   for(const comment of comments){const key=comment.parent_id||"";if(!children.has(key))children.set(key,[]);children.get(key).push(comment);}
   const render=(parentId="",depth=0)=>{
     if(depth>12)return "";
-    return (children.get(parentId)||[]).map(cm=>'<div class="comment"><div class="comment-heading"><strong>'+escapeHTML(displayUsername(cm.author,cm.user_id))+'</strong><button class="reply-toggle" type="button" data-reply="'+cm.id+'">Reply</button></div><p>'+escapeHTML(cm.body)+'</p><form class="reply-form" data-parent-id="'+cm.id+'" hidden><input name="comment" maxlength="800" placeholder="Write a reply..." required aria-label="Write a reply"><button class="btn small">Reply</button></form><div class="comment-children">'+render(cm.id,depth+1)+'</div></div>').join("");
+    return (children.get(parentId)||[]).map(cm=>'<div class="comment"><div class="comment-heading"><strong>'+escapeHTML(cm.author)+'</strong><button class="reply-toggle" type="button" data-reply="'+cm.id+'">Reply</button></div><p>'+escapeHTML(cm.body)+'</p><form class="reply-form" data-parent-id="'+cm.id+'" hidden><input name="comment" maxlength="800" placeholder="Write a reply..." required aria-label="Write a reply"><button class="btn small">Reply</button></form><div class="comment-children">'+render(cm.id,depth+1)+'</div></div>').join("");
   };
   return render();
 }
@@ -300,7 +294,7 @@ function render(){
     const c=community(p.community_id),vote=p.myVote||0;
     const media=renderPostMedia(p);
     const pollHtml=p.poll?'<div class="poll-options">'+(p.poll.poll_options||[]).sort((a,b)=>a.position-b.position).map(o=>{const count=(p.poll.poll_votes||[]).filter(v=>v.option_id===o.id).length;return '<button class="poll-option" data-poll-option="'+o.id+'">'+escapeHTML(o.label)+' <span>'+count+' votes</span></button>'}).join("")+'</div>':"";
-    return '<article class="panel post" data-post="'+p.id+'"><div class="postmeta"><span>'+c.icon+'</span><span class="postcommunity">lemon/'+escapeHTML(c.name)+'</span><span class="dotsep">•</span><span>Posted by '+escapeHTML(displayUsername(p.author,p.user_id))+'</span><span class="dotsep">•</span><span>'+timeAgo(p.created_at)+'</span></div><h2>'+escapeHTML(p.title)+'</h2>'+media+'<div class="postbody">'+escapeHTML(p.body||"")+'</div>'+pollHtml+'<div class="postactions"><div class="vote"><button data-vote="1" class="'+(vote===1?"selected":"")+'" aria-label="Upvote">▲</button><strong>'+p.score+'</strong><button data-vote="-1" class="'+(vote===-1?"selected":"")+'" aria-label="Downvote">▼</button></div><button class="action" data-comments>▤ '+p.comments.length+' comments</button><button class="action" data-save>▣ Save</button><button class="action" data-follow>♡ Follow</button><button class="action" data-block>⊘ Block</button><button class="action" data-report>⚑ Report</button><button class="action" data-edit>✎ Edit</button>'+(currentUser&&p.user_id===currentUser.id?'<button class="action" data-delete-post>Delete</button>':'')+'<button class="action" data-share>↗ Share</button></div><div class="comments" hidden><div class="comment-list">'+renderCommentTree(p.comments)+'</div><form class="comment-form"><input name="comment" maxlength="800" placeholder="'+(currentUser?"Add a comment...":"Sign in to comment")+'" required aria-label="Add a comment"><button class="btn small">Reply</button></form></div></article>';
+    return '<article class="panel post" data-post="'+p.id+'"><div class="postmeta"><span>'+c.icon+'</span><span class="postcommunity">lemon/'+escapeHTML(c.name)+'</span><span class="dotsep">•</span><span>Posted by '+escapeHTML(p.author_label||p.author)+'</span>'+(p.author_label==='LemonBingo Official'?'<span class="official-badge">Official</span>':'')+'<span class="dotsep">•</span><span>'+timeAgo(p.created_at)+'</span></div><h2>'+escapeHTML(p.title)+'</h2>'+media+'<div class="postbody">'+escapeHTML(p.body||"")+'</div>'+pollHtml+'<div class="postactions"><div class="vote"><button data-vote="1" class="'+(vote===1?"selected":"")+'" aria-label="Upvote">▲</button><strong>'+p.score+'</strong><button data-vote="-1" class="'+(vote===-1?"selected":"")+'" aria-label="Downvote">▼</button></div><button class="action" data-comments>▤ '+p.comments.length+' comments</button><button class="action" data-save>▣ Save</button><button class="action" data-follow>♡ Follow</button><button class="action" data-block>⊘ Block</button><button class="action" data-report>⚑ Report</button><button class="action" data-edit>✎ Edit</button>'+(currentUser&&p.user_id===currentUser.id?'<button class="action" data-delete-post>Delete</button>':'')+'<button class="action" data-share>↗ Share</button></div><div class="comments" hidden><div class="comment-list">'+renderCommentTree(p.comments)+'</div><form class="comment-form"><input name="comment" maxlength="800" placeholder="'+(currentUser?"Add a comment...":"Sign in to comment")+'" required aria-label="Add a comment"><button class="btn small">Reply</button></form></div></article>';
   }).join(""):'<div class="panel empty"><b>No posts found</b>'+(feedMode==="videos"||feedMode==="shorts"?"Be the first to share one!":"Try another search or be the first to post in this community.")+'</div>';
 }
 function openModal(){if(!currentUser){openAuth("signin");return}$("#modal").classList.add("open");setTimeout(()=>$("#postTitle").focus(),50)}
@@ -343,21 +337,6 @@ $("#search").addEventListener("input",e=>{searchTerm=e.target.value.trim().toLow
 document.querySelectorAll("[data-sort]").forEach(b=>b.addEventListener("click",()=>{sortMode=b.dataset.sort;document.querySelectorAll("[data-sort]").forEach(x=>x.classList.toggle("active",x===b));render()}));
 document.querySelectorAll("[data-feed]").forEach(b=>b.addEventListener("click",()=>{activeFeature="";specialPostIds=null;feedMode=b.dataset.feed;selectedCommunity="all";document.querySelectorAll("[data-feed]").forEach(x=>x.classList.toggle("active",x===b));document.querySelectorAll("[data-feature]").forEach(x=>x.classList.remove("active"));render()}));
 featureCss();
-if(undercoverMode)document.body.classList.add("undercover-mode");
-$("#lemonSecretDock").addEventListener("click",e=>{
-  const lemon=e.target.closest("[data-secret-lemon]");if(!lemon)return;
-  secretLemonsPressed.add(lemon.dataset.secretLemon);lemon.classList.add("used");
-  $("#secretStatus").textContent=secretLemonsPressed.size+"/6";
-  if(secretLemonsPressed.size===6){
-    undercoverMode=!undercoverMode;
-    localStorage.setItem("lemonbingo_undercover",undercoverMode?"on":"off");
-    secretLemonsPressed.clear();
-    document.querySelectorAll("[data-secret-lemon]").forEach(x=>x.classList.remove("used"));
-    $("#secretStatus").textContent=undercoverMode?"UNDERCOVER ON":"UNDERCOVER OFF";
-    setAuthUI();render();
-    if(activeFeature==="profile"&&currentUser)openFeature("profile");
-  }
-});
 document.addEventListener("click",async e=>{
   const feature=e.target.closest("[data-feature]");if(feature){openFeature(feature.dataset.feature);return}
   const c=e.target.closest("[data-community]");if(c){activeFeature="";specialPostIds=null;selectCommunity(c.dataset.community);return}
@@ -402,6 +381,7 @@ document.addEventListener("submit",async e=>{
 $("#postForm").addEventListener("submit",async e=>{
   e.preventDefault();if(!currentUser){openAuth("signin");return}
   const title=$("#postTitle").value.trim(),body=$("#postBody").value.trim(),communityId=$("#postCommunity").value,postType=$("#postType").value;
+  const author_label=isOfficialAccount()&&$("#postAsOfficial").checked?"LemonBingo Official":null;
   const mediaUrl=$("#mediaUrl").value.trim(),file=$("#mediaFile").files[0];
   let finalMediaUrl=mediaUrl;
   if(!title){alert("Add a title.");return}
@@ -409,7 +389,7 @@ $("#postForm").addEventListener("submit",async e=>{
   if(postType==="poll"){
     const options=$("#pollOptions").value.split("\n").map(x=>x.trim()).filter(Boolean);
     if(options.length<2||options.length>6){alert("A poll needs 2–6 options.");return}
-    const {data:post,error}=await db.from("posts").insert({community_id:communityId,user_id:currentUser.id,title,body,post_type:"poll"}).select("id").single();
+    const {data:post,error}=await db.from("posts").insert({community_id:communityId,user_id:currentUser.id,title,body,post_type:"poll",author_label}).select("id").single();
     if(error){showError(error);return}
     const {data:poll,error:pollError}=await db.from("polls").insert({post_id:post.id}).select("id").single();
     if(pollError){showError(pollError);return}
@@ -429,10 +409,10 @@ $("#postForm").addEventListener("submit",async e=>{
     }
     if((postType==="image"||postType==="video"||postType==="short")&&!finalMediaUrl){alert("Add a media URL or upload a file.");return}
     if(finalMediaUrl){try{const u=new URL(finalMediaUrl);if(u.protocol!=="https:")throw new Error("Use an HTTPS media link.");}catch(err){showError(err);return}}
-    const {error}=await db.from("posts").insert({community_id:communityId,user_id:currentUser.id,title,body,post_type:postType,media_url:finalMediaUrl||null});
+    const {error}=await db.from("posts").insert({community_id:communityId,user_id:currentUser.id,title,body,post_type:postType,media_url:finalMediaUrl||null,author_label});
     if(error){showError(error);return}
   }
-  $("#postForm").reset();$("#mediaUrlField").hidden=true;$("#pollOptionsField").hidden=true;$("#mediaUrl").required=false;$("#postBody").required=true;closeModal();activeFeature="";specialPostIds=null;selectedCommunity="all";feedMode="home";searchTerm="";$("#search").value="";await loadPosts();
+  $("#postForm").reset();$("#officialPostField").hidden=!isOfficialAccount();$("#mediaUrlField").hidden=true;$("#pollOptionsField").hidden=true;$("#mediaUrl").required=false;$("#postBody").required=true;closeModal();activeFeature="";specialPostIds=null;selectedCommunity="all";feedMode="home";searchTerm="";$("#search").value="";await loadPosts();
 });
 function authEmailForUsername(username){return username.toLowerCase()+"@users.lemonbingo.com"}
 $("#authForm").addEventListener("submit",async e=>{
